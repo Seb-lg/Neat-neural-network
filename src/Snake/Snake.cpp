@@ -178,31 +178,3 @@ void Snake::apple() {
 		map[i][j] = 'A';
 	}
 }
-
-int &Snake::getFitness() {
-	return fitness;
-}
-
-int &Snake::getX() {
-	return x;
-}
-
-int &Snake::getY() {
-	return y;
-}
-
-bool &Snake::isDead() {
-	return dead;
-}
-
-Brain &Snake::getBrain() {
-	return brain;
-}
-
-const std::vector<std::vector<char>> &Snake::getMap() const {
-	return map;
-}
-
-Orientation &Snake::getOrient() {
-	return orient;
-}

@@ -29,17 +29,17 @@ public:
 
 	bool anyoneAlive() {
 		for (auto &snake : snakes) {
-			if (!snake.isDead())
+			if (!snake.dead)
 				return (true);
 		}
 		return false;
 	}
 
 	void show() {
-		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.getFitness()>j.getFitness()); });
+		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
 
 		auto it = snakes.begin();
-		while (it->isDead() && it != snakes.end())
+		while (it->dead && it != snakes.end())
 			it++;
 
 		if (it == snakes.end())
@@ -59,7 +59,7 @@ public:
 		gen++;
 
 		for (auto &item : snakes) {
-			std::cout << item.getFitness() << std::endl;
+			std::cout << item.fitness << std::endl;
 		}
 
 		int total = 0;
@@ -67,7 +67,7 @@ public:
 
 
 		for (auto &snake : snakes) {
-			total += snake.getFitness();
+			total += snake.fitness;
 		}
 		std::random_device rd;
 		std::mt19937 gen(rd());
@@ -83,17 +83,17 @@ public:
 		for (int i = 0; i < this->population; ++i) {
 			act = 0;
 			for (auto &snake : snakes) {
-				act += snake.getFitness();
+				act += snake.fitness;
 				if (act >= pereID) {
-					pere = snake.getBrain().getDNA();
+					pere = snake.brain.getDNA();
 					break;
 				}
 			}
 			act = 0;
 			for (auto &snake : snakes) {
-				act += snake.getFitness();
+				act += snake.fitness;
 				if (act >= mereID) {
-					mere = snake.getBrain().getDNA();
+					mere = snake.brain.getDNA();
 					break;
 				}
 			}
@@ -115,12 +115,12 @@ public:
 	}
 
 	Snake &getChampion() {
-		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.getFitness()>j.getFitness()); });
+		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
 		return (snakes[0]);
 	}
 
 	std::vector<Snake> &getGeneration() {
-		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.getFitness()>j.getFitness()); });
+		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
 		return (snakes);
 	}
 

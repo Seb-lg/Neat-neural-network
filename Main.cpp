@@ -48,14 +48,14 @@ int main() {
 					}
 				}
 			}
-			snake.setPosition(it.getX() * width, it.getY() * width);
+			snake.setPosition(it.x * width, it.y * width);
 			window->draw(snake);
 
 			window->display();
 			window->clear(sf::Color::Black);
 			std::this_thread::sleep_for(std::chrono::microseconds(16666));
 		}
-		dnas.emplace_back(generation.getChampion().getBrain().getDNA());
+		dnas.emplace_back(generation.getChampion().brain.getDNA());
 		generation.newGen();
 	}
 }

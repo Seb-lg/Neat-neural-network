@@ -5,20 +5,23 @@
 #pragma once
 
 #include <map>
+#include <random>
 
-typedef struct MutationRate {
+struct MutationRate {
 	MutationRate():
 		connectionMutateChance(0.25),
-		perturbChance(0.90),
+		weightMutationChance(0.75),
+		perturbChance(0.10),
 		crossoverChance(0.75),
 		linkMutationChance(2.0),
 		nodeMutationChance(0.50),
 		biasMutationChance(0.40),
-		stepSize(0.1),
+		stepSize(0.10),
 		disableMutationChance(0.4),
 		enableMutationChance(0.2){
 	}
 	double connectionMutateChance;
+	double weightMutationChance;
 	double perturbChance;
 	double crossoverChance;
 	double linkMutationChance;
@@ -29,7 +32,7 @@ typedef struct MutationRate {
 	double enableMutationChance;
 };
 
-typedef struct SpeciatingParameter {
+struct SpeciatingParameter {
 	SpeciatingParameter():
 		population(240),
 		deltaDisjoint(2.0),
@@ -45,7 +48,7 @@ typedef struct SpeciatingParameter {
 	unsigned int	staleSpecies;
 };
 
-typedef struct NetworkInfo {
+struct NetworkInfo {
 	unsigned int	inputSize;
 	unsigned int	biasSize;
 	unsigned int	outputSize;
@@ -53,7 +56,7 @@ typedef struct NetworkInfo {
 	bool		recurrent;
 };
 
-typedef struct Connection{
+struct Connection{
 	Connection():
 		innovationNum(-1),
 		fromNode(-1),
@@ -71,22 +74,44 @@ typedef struct Connection{
 class Genome {
 public:
 
-	MutationRate mutationRates;
-	NetworkInfo networkInfo;
 
-	std::map<unsigned int, Connection> genes;
-
-	Genome(NetworkInfo& info, MutationRate& rates){
+	Genome(NetworkInfo& info, MutationRate& rates):rd(), gen(rd){
 		mutationRates = rates;
 		networkInfo = info;
 		maxNeuron = networkInfo.functionalNodes;
+
+		for (int i = 0; i < networkInfo.inputSize + 1 + networkInfo.outputSize; i++){
+			genes[i];
+		}
 	}
 
-	Genome(const Genome&) = default;
+	Genome(const Genome& other):rd(), gen(rd) {
+		this->mutationRates = other.mutationRates;
+		this->networkInfo = other.networkInfo;
+		this->genes = other.genes;
+		this->maxNeuron = other.maxNeuron;
+	}
+
+	void mutate();
+
+	void WeightMutation();
+	void ConnectionMutate();
+	void LinkMutation();
+	void NodeMutation();
+	void BiasMutation();
+
+	MutationRate mutationRates;
+	NetworkInfo networkInfo;
+	std::map<unsigned int, Connection> genes;
 
 	unsigned int fitness = 0;
 	unsigned int adjusted_fitness = 0;
 	unsigned int global_rank = 0;
 	unsigned int maxNeuron;
 	unsigned int can_be_recurrent = false;
+
+
+	///RANDOM
+	std::random_device rd;
+	std::mt19937 gen;
 };
