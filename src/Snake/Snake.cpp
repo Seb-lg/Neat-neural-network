@@ -5,14 +5,7 @@
 #include <iostream>
 #include "Snake.hpp"
 
-Snake::Snake(): brain(std::vector<int>{8,6,4}), orient(Orientation::Right), fitness(0), x(WIDTH/2), y(WIDTH/2), dead(false), food(50) {
-	map.resize(WIDTH);
-	for (int x = 0; x < WIDTH; x++) {
-		map[x].resize(WIDTH, ' ');
-	}
-}
-
-Snake::Snake(std::vector<double> &DNA): brain(std::vector<int>{8,6,4}, DNA), orient(Orientation::Right), fitness(0), x(WIDTH/2), y(WIDTH/2), dead(false), food(50) {
+Snake::Snake(): brain(), orient(Orientation::Right), fitness(0), x(WIDTH/2), y(WIDTH/2), dead(false), food(50) {
 	map.resize(WIDTH);
 	for (int x = 0; x < WIDTH; x++) {
 		map[x].resize(WIDTH, ' ');
@@ -21,7 +14,7 @@ Snake::Snake(std::vector<double> &DNA): brain(std::vector<int>{8,6,4}, DNA), ori
 
 
 void Snake::update() {
-	if (dead)
+/*	if (dead)
 		return;
 	auto ins = brain.getInputs();
 
@@ -44,10 +37,10 @@ void Snake::update() {
 	auto outs = brain.getOutputs();
 
 
-	/*std::cout << outs[0].getActive() << " ";
+	/std::cout << outs[0].getActive() << " ";
 	std::cout << outs[1].getActive() << " ";
 	std::cout << outs[2].getActive() << " ";
-	std::cout << outs[3].getActive() << std::endl;*/
+	std::cout << outs[3].getActive() << std::endl;/
 
 	double max = 0;
 	int maxIndex = 0;
@@ -111,7 +104,7 @@ void Snake::update() {
 	if (!dead) {
 		map[x][y] = 'S';
 		apple();
-	}
+	}*/
 }
 
 double Snake::checkAppleUp() {

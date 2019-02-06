@@ -36,7 +36,7 @@ public:
 	}
 
 	void show() {
-		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
+		/*std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
 
 		auto it = snakes.begin();
 		while (it->dead && it != snakes.end())
@@ -50,7 +50,7 @@ public:
 				std::cout << it->getMap()[x][y];
 			}
 			std::cout << "|" << std::endl;
-		}
+		}*/
 	}
 
 	void newGen() {
@@ -81,47 +81,18 @@ public:
 		std::vector<double> pere;
 		std::vector<double> mere;
 		for (int i = 0; i < this->population; ++i) {
-			act = 0;
-			for (auto &snake : snakes) {
-				act += snake.fitness;
-				if (act >= pereID) {
-					pere = snake.brain.getDNA();
-					break;
-				}
-			}
-			act = 0;
-			for (auto &snake : snakes) {
-				act += snake.fitness;
-				if (act >= mereID) {
-					mere = snake.brain.getDNA();
-					break;
-				}
-			}
-
-			child.resize(pere.size());
-			auto dnap = pere.begin();
-			auto dnac = child.begin();
-			for (auto dna = mere.begin(); dna < mere.end(); ++dna, ++dnap, ++dnac) {
-				if (dist(gen))
-					*dnac = *dnap;
-				else
-					*dnac = *dna;
-				if (percent(gen) < 10)
-					*dnac = rdouble(gen);
-
-			}
-			snakes.emplace_back(child);
+			/// MAKE THE NEXT GEN THING
 		}
 	}
 
 	Snake &getChampion() {
-		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
-		return (snakes[0]);
+/*		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
+		return (snakes[0]);*/
 	}
 
 	std::vector<Snake> &getGeneration() {
-		std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
-		return (snakes);
+		/*std::sort(snakes.begin(), snakes.end(), [](Snake i,Snake j) { return (i.fitness>j.fitness); });
+		return (snakes);*/
 	}
 
 private:

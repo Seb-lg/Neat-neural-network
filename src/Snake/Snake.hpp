@@ -6,6 +6,7 @@
 #define AI_SNAKE_HPP
 
 #include <vector>
+#include "Brain.hpp"
 
 enum class Orientation {
 	Up,
@@ -19,7 +20,6 @@ enum class Orientation {
 class Snake {
 public:
 	Snake();
-	Snake(std::vector<double> &DNA);
 
 	void update();
 	void apple();

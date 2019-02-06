@@ -53,7 +53,6 @@ struct NetworkInfo {
 	unsigned int	biasSize;
 	unsigned int	outputSize;
 	unsigned int	functionalNodes;
-	bool		recurrent;
 };
 
 struct Connection{
@@ -75,7 +74,7 @@ class Genome {
 public:
 
 
-	Genome(NetworkInfo& info, MutationRate& rates):rd(), gen(rd){
+	Genome(NetworkInfo& info, MutationRate& rates):gen(rd()){
 		mutationRates = rates;
 		networkInfo = info;
 		maxNeuron = networkInfo.functionalNodes;
@@ -85,7 +84,7 @@ public:
 		}
 	}
 
-	Genome(const Genome& other):rd(), gen(rd) {
+	Genome(const Genome& other):gen(rd()) {
 		this->mutationRates = other.mutationRates;
 		this->networkInfo = other.networkInfo;
 		this->genes = other.genes;
@@ -96,9 +95,8 @@ public:
 
 	void WeightMutation();
 	void ConnectionMutate();
-	void LinkMutation();
+	void ConnectionEnableMutation();
 	void NodeMutation();
-	void BiasMutation();
 
 	MutationRate mutationRates;
 	NetworkInfo networkInfo;
@@ -107,7 +105,7 @@ public:
 	unsigned int fitness = 0;
 	unsigned int adjusted_fitness = 0;
 	unsigned int global_rank = 0;
-	unsigned int maxNeuron;
+	unsigned int maxNeuron = 0;
 	unsigned int can_be_recurrent = false;
 
 

@@ -55,7 +55,7 @@ int main() {
 			window->clear(sf::Color::Black);
 			std::this_thread::sleep_for(std::chrono::microseconds(16666));
 		}
-		dnas.emplace_back(generation.getChampion().brain.getDNA());
+		//dnas.emplace_back(generation.getChampion().brain.getDNA());
 		generation.newGen();
 	}
 }
