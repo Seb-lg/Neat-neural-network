@@ -91,6 +91,13 @@ public:
 		this->maxNeuron = other.maxNeuron;
 	}
 
+	Genome(const Genome& pere, const Genome& mere):gen(rd()) {
+		this->mutationRates = pere.mutationRates;
+		this->networkInfo = pere.networkInfo;
+
+		
+	}
+
 	void mutate();
 
 	void WeightMutation();
