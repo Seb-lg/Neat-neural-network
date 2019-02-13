@@ -6,6 +6,12 @@
 #include <iostream>
 #include <queue>
 
+unsigned int Genome::GetInnovation() {
+	static unsigned int innovation = 0;
+
+	return (innovation++);
+}
+
 void Genome::mutate() {
 	WeightMutation();
 	ConnectionMutate();

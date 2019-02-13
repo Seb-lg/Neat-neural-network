@@ -6,6 +6,7 @@
 
 #include <map>
 #include <random>
+#include <algorithm>
 
 struct MutationRate {
 	MutationRate():
@@ -91,12 +92,45 @@ public:
 		this->maxNeuron = other.maxNeuron;
 	}
 
-	Genome(const Genome& pere, const Genome& mere):gen(rd()) {
+	Genome(Genome& pere, Genome& mere):gen(rd()) {
+		std::uniform_int_distribution<int> coinFlip(0, 1);
+
 		this->mutationRates = pere.mutationRates;
 		this->networkInfo = pere.networkInfo;
 
-		
+		auto itP = pere.genes.begin();
+		auto itM = mere.genes.begin();
+
+		while (itP != pere.genes.end() && itM != mere.genes.end()) {
+			if (itP == pere.genes.end()) {
+				this->genes[itM->first] = itM->second;
+				itM++;
+			} else if (itM == mere.genes.end()) {
+				this->genes[itP->first] = itP->second;
+				itP++;
+			} else if (itP->second.innovationNum == itM->second.innovationNum) {
+				if (pere.fitness == mere.fitness) {
+					this->genes[itP->second.innovationNum] = (coinFlip(gen) ? itP->second : itM->second);
+				} else if (pere.fitness > mere.fitness) {
+					this->genes[itP->second.innovationNum] = itP->second;
+				} else {
+					this->genes[itM->second.innovationNum] = itM->second;
+				}
+				itP++;
+				itM++;
+			} else {
+				if (itP->second.innovationNum < itM->second.innovationNum) {
+					this->genes[itP->first] = itP->second;
+					itP++;
+				} else {
+					this->genes[itM->first] = itM->second;
+					itM++;
+				}
+			}
+		}
 	}
+
+	static unsigned int GetInnovation();
 
 	void mutate();
 

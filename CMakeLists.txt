@@ -9,11 +9,11 @@ include_directories(src/Snake)
 add_executable(Neat_neural_network
         src/NeatNeuralNetwork/Genome.cpp
         src/NeatNeuralNetwork/Genome.hpp
-        src/Snake/Generation.cpp
-        src/Snake/Generation.hpp
-        src/Snake/Snake.cpp
-        src/Snake/Snake.hpp
-        Main.cpp src/Snake/Brain.cpp src/Snake/Brain.hpp src/Graphical.cpp src/Graphical.hpp)
+
+        src/Graphical.cpp
+        src/Graphical.hpp
+
+        Main.cpp src/Snake/Snake.cpp src/Snake/Snake.hpp)
 
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-audio.so)
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-graphics.so)

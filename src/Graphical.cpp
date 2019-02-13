@@ -11,7 +11,7 @@ Graphical::Graphical(int size, int width, bool duo):
 
 	widthCircle = static_cast<float>(width) / (size + 2);
 
-	circle.setRadius(widthCircle/2 - 3.f);
+	circle.setRadius(widthCircle/2 - 1.f);
 	circle.setFillColor(sf::Color::Black);
 	//circle.setOutlineThickness(1.f);
 	//circle.setOutlineColor(sf::Color(211,211,211,255));
@@ -59,6 +59,8 @@ void Graphical::draw(std::vector<std::vector<char>> const &left, std::vector<std
 		circle.setPosition((0) * widthCircle, (y) * widthCircle);
 		window.draw(circle);
 		circle.setPosition((left.size() + 1) * widthCircle, (y) * widthCircle);
+		window.draw(circle);
+		circle.setPosition((left.size() + 2) * widthCircle, (y) * widthCircle);
 		window.draw(circle);
 		circle.setPosition((right.size() + left.size() + 3) * widthCircle, (y) * widthCircle);
 		window.draw(circle);
