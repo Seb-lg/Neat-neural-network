@@ -7,8 +7,8 @@ include_directories(src/NeatNeuralNetwork)
 include_directories(src/Snake)
 
 add_executable(Neat_neural_network
-        src/Thread\ Pool/ThreadPool.cpp
-        src/Thread\ Pool/ThreadPool.hpp
+        src/ThreadPool/ThreadPool.cpp
+        src/ThreadPool/ThreadPool.hpp
 
         src/NeatNeuralNetwork/Genome.cpp
         src/NeatNeuralNetwork/Genome.hpp
