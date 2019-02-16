@@ -56,7 +56,7 @@ struct NetworkInfo {
 	unsigned int	functionalNodes;
 };
 
-struct Connection{
+struct Connection {
 	Connection():
 		innovationNum(-1),
 		fromNode(-1),
@@ -71,68 +71,49 @@ struct Connection{
 	bool		enabled;
 };
 
+class Node {
+public:
+	Node() {
+		this->id = 0;
+		this->value = 0.0;
+		this->calculated = false;
+	}
+	Node(unsigned int const &id) {
+		this->id = id;
+		this->value = 0.0;
+		this->calculated = false;
+	}
+
+	double Update(std::map<unsigned int, Connection> &genes, std::map<unsigned int, Node> &nodes, NetworkInfo const &info) {
+		if (id < info.inputSize + info.biasSize || calculated)
+			return value;
+		value = 0.0;
+		for (const auto &gene : genes) {
+			if (gene.second.toNode == id)
+				value += nodes[gene.second.fromNode].Update(genes, nodes, info);
+		}
+		value = value / (1 + std::abs(value));
+		calculated = true;
+		return value;
+	}
+
+	unsigned int	id;
+	double		value;
+	bool		calculated;
+};
+
 class Genome {
 public:
 
-
-	Genome(NetworkInfo& info, MutationRate& rates):gen(rd()){
-		mutationRates = rates;
-		networkInfo = info;
-		maxNeuron = networkInfo.functionalNodes;
-
-		for (int i = 0; i < networkInfo.inputSize + 1 + networkInfo.outputSize; i++){
-			genes[i];
-		}
-	}
-
-	Genome(const Genome& other):gen(rd()) {
-		this->mutationRates = other.mutationRates;
-		this->networkInfo = other.networkInfo;
-		this->genes = other.genes;
-		this->maxNeuron = other.maxNeuron;
-	}
-
-	Genome(Genome& pere, Genome& mere):gen(rd()) {
-		std::uniform_int_distribution<int> coinFlip(0, 1);
-
-		this->mutationRates = pere.mutationRates;
-		this->networkInfo = pere.networkInfo;
-
-		auto itP = pere.genes.begin();
-		auto itM = mere.genes.begin();
-
-		while (itP != pere.genes.end() && itM != mere.genes.end()) {
-			if (itP == pere.genes.end()) {
-				this->genes[itM->first] = itM->second;
-				itM++;
-			} else if (itM == mere.genes.end()) {
-				this->genes[itP->first] = itP->second;
-				itP++;
-			} else if (itP->second.innovationNum == itM->second.innovationNum) {
-				if (pere.fitness == mere.fitness) {
-					this->genes[itP->second.innovationNum] = (coinFlip(gen) ? itP->second : itM->second);
-				} else if (pere.fitness > mere.fitness) {
-					this->genes[itP->second.innovationNum] = itP->second;
-				} else {
-					this->genes[itM->second.innovationNum] = itM->second;
-				}
-				itP++;
-				itM++;
-			} else {
-				if (itP->second.innovationNum < itM->second.innovationNum) {
-					this->genes[itP->first] = itP->second;
-					itP++;
-				} else {
-					this->genes[itM->first] = itM->second;
-					itM++;
-				}
-			}
-		}
-	}
+	Genome(NetworkInfo& info, MutationRate& rates);
+	Genome(const Genome& other);
+	Genome(Genome& pere, Genome& mere);
 
 	static unsigned int GetInnovation();
 
-	void mutate();
+	void Update();
+	void Mutate();
+	void Crossover(Genome &pere, Genome &mere);
 
 	void WeightMutation();
 	void ConnectionMutate();
@@ -141,13 +122,13 @@ public:
 
 	MutationRate mutationRates;
 	NetworkInfo networkInfo;
-	std::map<unsigned int, Connection> genes;
+	std::map<unsigned int, Connection>	genes;
+	std::map<unsigned int, Node>		nodes;
 
 	unsigned int fitness = 0;
 	unsigned int adjusted_fitness = 0;
 	unsigned int global_rank = 0;
 	unsigned int maxNeuron = 0;
-	unsigned int can_be_recurrent = false;
 
 
 	///RANDOM

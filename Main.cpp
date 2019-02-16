@@ -4,15 +4,48 @@
 
 #include <iostream>
 #include <algorithm>
-#include <SFML/Graphics.hpp>
+//#include <SFML/Graphics.hpp>
 #include <chrono>
 #include <thread>
-#include <zconf.h>
-#include "src/Graphical.hpp"
+#include <Genome.hpp>
+//#include "src/Graphical.hpp"
+#include "src/Thread Pool/ThreadPool.hpp"
 
 #define CARRE 50
 
 int main() {
+
+	NetworkInfo info;
+	info.outputSize = 4;
+	info.biasSize = 3;
+	info.inputSize = 24;
+	info.functionalNodes = info.outputSize + info.biasSize + info.inputSize;
+	MutationRate rates;
+
+	std::vector<Genome> population;
+
+	for (int i = 0; i < 100; i++) {
+		population.emplace_back(info, rates);
+	}
+
+	ThreadPool<decltype(population.begin())> POOL([](decltype(population.begin()) gen){
+		for (int i = 0; i < 1000; i++)
+			gen->Mutate();
+		}, 8);
+
+	POOL.lockWork();
+
+	for (auto it = population.begin(); it != population.end(); it++) {
+		POOL.addTask(it);
+	}
+
+	POOL.unlockWork();
+
+	while (!POOL.isDone());
+
+	for (auto &item2 : population) {
+		std::cout << item2.genes.size() << "\t" << item2.nodes.size() << std::endl;
+	}
 
 	std::vector<std::vector<char>> map1;
 	std::vector<std::vector<char>> map2;
@@ -27,7 +60,8 @@ int main() {
 		item.resize(CARRE, ' ');
 	}
 
-	map1[0][0] = 'S';
+	return 0;
+	/*map1[0][0] = 'S';
 	map1[1][0] = 'S';
 	map1[0][1] = 'S';
 	map1[CARRE - 1][CARRE - 1] = 'A';
@@ -42,5 +76,5 @@ int main() {
 		gr.draw(map1, map2);
 		gr.update();
 	}
-
+	*/
 }

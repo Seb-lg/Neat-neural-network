@@ -33,3 +33,10 @@
 
 .idea/
 cmake-build-debug/
+CMakeFiles
+.clion.source.upload.marker
+CMakeCache.txt
+Makefile
+Neat_neural_network
+Neat_neural_network.cbp
+cmake_install.cmake
