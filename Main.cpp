@@ -4,12 +4,12 @@
 
 #include <iostream>
 #include <algorithm>
-//#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <chrono>
 #include <thread>
 #include <Genome.hpp>
-//#include "src/Graphical.hpp"
-#include "src/Thread Pool/ThreadPool.hpp"
+// #include "src/Graphical.hpp"
+#include "src/ThreadPool/ThreadPool.hpp"
 
 #define CARRE 50
 
@@ -24,14 +24,22 @@ int main() {
 
 	std::vector<Genome> population;
 
+	population.reserve(100);
 	for (int i = 0; i < 100; i++) {
 		population.emplace_back(info, rates);
 	}
 
-	ThreadPool<decltype(population.begin())> POOL([](decltype(population.begin()) gen){
-		for (int i = 0; i < 1000; i++)
+	for (auto &item2 : population) {
+		std::cout << item2.genes.size() << "\t" << item2.nodes.size() << std::endl;
+	}
+
+	std::cout << "---------------------------------------------------------------" << std::endl;
+
+
+	/*ThreadPool<decltype(population.begin())> POOL([](decltype(population.begin()) gen){
+		for (int i = 0; i < 100; i++)
 			gen->Mutate();
-		}, 8);
+	});
 
 	POOL.lockWork();
 
@@ -41,7 +49,12 @@ int main() {
 
 	POOL.unlockWork();
 
-	while (!POOL.isDone());
+	while(!POOL.isDone());
+
+	POOL.~ThreadPool<decltype(population.begin())>();*/
+
+	for (int i = 0; i < 100; i++)
+		population.begin()->Mutate();
 
 	for (auto &item2 : population) {
 		std::cout << item2.genes.size() << "\t" << item2.nodes.size() << std::endl;

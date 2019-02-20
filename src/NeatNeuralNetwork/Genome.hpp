@@ -7,15 +7,16 @@
 #include <map>
 #include <random>
 #include <algorithm>
+#include "../SnakeAPI/snakeAPI.hpp"
 
 struct MutationRate {
 	MutationRate():
-		connectionMutateChance(0.25),
+		connectionMutateChance(0.50),
 		weightMutationChance(0.75),
 		perturbChance(0.10),
 		crossoverChance(0.75),
 		linkMutationChance(2.0),
-		nodeMutationChance(0.50),
+		nodeMutationChance(0.20),
 		biasMutationChance(0.40),
 		stepSize(0.10),
 		disableMutationChance(0.4),
@@ -58,9 +59,9 @@ struct NetworkInfo {
 
 struct Connection {
 	Connection():
-		innovationNum(-1),
-		fromNode(-1),
-		toNode(-1),
+		innovationNum(0),
+		fromNode(0),
+		toNode(0),
 		weight(0.0),
 		enabled(true){
 	}
@@ -78,7 +79,13 @@ public:
 		this->value = 0.0;
 		this->calculated = false;
 	}
-	Node(unsigned int const &id) {
+
+	Node(const Node &other) {
+		this->id = other.id;
+		this->value = other.value;
+		this->calculated = other.calculated;
+	}
+	Node(unsigned int id) {
 		this->id = id;
 		this->value = 0.0;
 		this->calculated = false;
@@ -102,14 +109,21 @@ public:
 	bool		calculated;
 };
 
-class Genome {
+class Genome : public SnakeAPI {
 public:
+	Direction computeDirection() const final;
 
-	Genome(NetworkInfo& info, MutationRate& rates);
+	Genome(NetworkInfo const &info, MutationRate const &rates);
 	Genome(const Genome& other);
 	Genome(Genome& pere, Genome& mere);
 
+	~Genome() = default;
+
+
+	Genome &operator=(const Genome &other);
+
 	static unsigned int GetInnovation();
+	static unsigned int GetNodeId();
 
 	void Update();
 	void Mutate();
@@ -132,6 +146,7 @@ public:
 
 
 	///RANDOM
-	std::random_device rd;
+
 	std::mt19937 gen;
+	//int gen;
 };
