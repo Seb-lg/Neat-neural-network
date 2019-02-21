@@ -7,11 +7,12 @@
 #include <map>
 #include <random>
 #include <algorithm>
+#include <memory>
 #include "../SnakeAPI/snakeAPI.hpp"
 
 struct MutationRate {
 	MutationRate():
-		connectionMutateChance(0.50),
+		connectionMutateChance(1.00),
 		weightMutationChance(0.75),
 		perturbChance(0.10),
 		crossoverChance(0.75),
@@ -91,13 +92,15 @@ public:
 		this->calculated = false;
 	}
 
-	double Update(std::map<unsigned int, Connection> &genes, std::map<unsigned int, Node> &nodes, NetworkInfo const &info) {
+	double Update(std::map<unsigned int, std::unique_ptr<Connection>> &genes,
+		      std::map<unsigned int, std::unique_ptr<Node>> &nodes,
+		      NetworkInfo const &info) {
 		if (id < info.inputSize + info.biasSize || calculated)
 			return value;
 		value = 0.0;
 		for (const auto &gene : genes) {
-			if (gene.second.toNode == id)
-				value += nodes[gene.second.fromNode].Update(genes, nodes, info);
+			if (gene.second->toNode == id)
+				value += nodes[gene.second->fromNode]->Update(genes, nodes, info);
 		}
 		value = value / (1 + std::abs(value));
 		calculated = true;
@@ -136,8 +139,8 @@ public:
 
 	MutationRate mutationRates;
 	NetworkInfo networkInfo;
-	std::map<unsigned int, Connection>	genes;
-	std::map<unsigned int, Node>		nodes;
+	std::map<unsigned int, std::unique_ptr<Connection>>	genes;
+	std::map<unsigned int, std::unique_ptr<Node>>		nodes;
 
 	unsigned int fitness = 0;
 	unsigned int adjusted_fitness = 0;
@@ -147,6 +150,6 @@ public:
 
 	///RANDOM
 
-	std::mt19937 gen;
+	//std::mt19937 gen;
 	//int gen;
 };

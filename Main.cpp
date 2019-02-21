@@ -24,8 +24,8 @@ int main() {
 
 	std::vector<Genome> population;
 
-	population.reserve(100);
-	for (int i = 0; i < 100; i++) {
+	population.reserve(30);
+	for (int i = 0; i < 30; i++) {
 		population.emplace_back(info, rates);
 	}
 
@@ -36,10 +36,10 @@ int main() {
 	std::cout << "---------------------------------------------------------------" << std::endl;
 
 
-	/*ThreadPool<decltype(population.begin())> POOL([](decltype(population.begin()) gen){
+	ThreadPool<decltype(population.begin())> POOL([](decltype(population.begin()) gen){
 		for (int i = 0; i < 100; i++)
 			gen->Mutate();
-	});
+	}, 8);
 
 	POOL.lockWork();
 
@@ -51,10 +51,12 @@ int main() {
 
 	while(!POOL.isDone());
 
-	POOL.~ThreadPool<decltype(population.begin())>();*/
+	POOL.~ThreadPool<decltype(population.begin())>();
 
-	for (int i = 0; i < 100; i++)
-		population.begin()->Mutate();
+	/*for (auto &item : population) {
+		for (int i = 0; i < 100; i++)
+			item.Mutate();
+	}*/
 
 	for (auto &item2 : population) {
 		std::cout << item2.genes.size() << "\t" << item2.nodes.size() << std::endl;

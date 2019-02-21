@@ -22,12 +22,9 @@ Genome::Genome(NetworkInfo const &info, MutationRate const &rates) {
 	mutationRates = rates;
 	networkInfo = info;
 	maxNeuron = networkInfo.functionalNodes;
-	int y;
 
-
-	std::cout << networkInfo.inputSize + networkInfo.biasSize + networkInfo.outputSize << std::endl;
 	for (unsigned int i = 0; i <= networkInfo.inputSize + networkInfo.biasSize + networkInfo.outputSize; i++){
-		nodes[i] = Node(i);
+		nodes.emplace(i, new Node(i));
 	}
 
 }
@@ -36,11 +33,10 @@ Genome &Genome::operator=(const Genome &other)
 {
 	this->mutationRates = other.mutationRates;
 	this->networkInfo = other.networkInfo;
-	for (auto e : other.genes)
-		this->genes[e.first] = e.second;
-	for (auto e : other.nodes)
-		this->nodes[e.first] = e.second;
-	//this->nodes = other.nodes;
+	for (auto const &e : other.genes)
+		this->genes.emplace(e.first, new Connection(*e.second));
+	for (auto const &e : other.nodes)
+		this->nodes.emplace(e.first, new Node(*e.second));
 	this->maxNeuron = other.maxNeuron;
 
 	return (*this);
@@ -62,35 +58,35 @@ Genome::Genome(Genome &pere, Genome &mere) {
 
 	while (itP != pere.genes.end() && itM != mere.genes.end()) {
 		if (itP == pere.genes.end()) {
-			this->genes[itM->first] = itM->second;
+			this->genes.emplace(itM->first, new Connection(*itM->second));
 			itM++;
 		} else if (itM == mere.genes.end()) {
-			this->genes[itP->first] = itP->second;
+			this->genes.emplace(itP->first, new Connection(*itP->second));
 			itP++;
-		} else if (itP->second.innovationNum == itM->second.innovationNum) {
+		} else if (itP->second->innovationNum == itM->second->innovationNum) {
 			if (pere.fitness == mere.fitness) {
-				this->genes[itP->second.innovationNum] = std::rand() % 2 ? itP->second : itM->second;
-//				this->genes[itP->second.innovationNum] = (coinFlip(gen) ? itP->second : itM->second);
+//				this->genes[itP->second->innovationNum] = std::rand() % 2 ? itP->second : itM->second;
+				this->genes.emplace(itP->second->innovationNum, new Connection((coinFlip(getGen()) ? *itP->second : *itM->second)));
 			} else if (pere.fitness > mere.fitness) {
-				this->genes[itP->second.innovationNum] = itP->second;
+				this->genes.emplace(itP->second->innovationNum, new Connection(*itP->second));
 			} else {
-				this->genes[itM->second.innovationNum] = itM->second;
+				this->genes.emplace(itM->second->innovationNum, new Connection(*itM->second));
 			}
 			itP++;
 			itM++;
 		} else {
-			if (itP->second.innovationNum < itM->second.innovationNum) {
-				this->genes[itP->first] = itP->second;
+			if (itP->second->innovationNum < itM->second->innovationNum) {
+				this->genes.emplace(itP->first, new Connection(*itP->second));
 				itP++;
 			} else {
-				this->genes[itM->first] = itM->second;
+				this->genes.emplace(itM->first, new Connection(*itM->second));
 				itM++;
 			}
 		}
 	}
 	for (const auto &gene : genes) {
-		nodes.try_emplace(gene.second.fromNode, gene.second.fromNode);
-		nodes.try_emplace(gene.second.toNode, gene.second.toNode);
+		nodes.try_emplace(gene.second->fromNode, new Node(gene.second->fromNode));
+		nodes.try_emplace(gene.second->toNode, new Node(gene.second->toNode));
 	}
 }
 
@@ -108,11 +104,11 @@ unsigned int Genome::GetNodeId() {
 
 void Genome::Update() {
 	for (auto &node : nodes) {
-		node.second.calculated = false;
+		node.second->calculated = false;
 	}
 
 	for (unsigned int i = networkInfo.inputSize + networkInfo.biasSize; i < networkInfo.inputSize + networkInfo.biasSize + networkInfo.outputSize; i++) {
-		nodes[i].Update(genes, nodes, networkInfo);
+		nodes[i]->Update(genes, nodes, networkInfo);
 	}
 }
 
@@ -136,24 +132,28 @@ void Genome::Crossover(Genome &pere, Genome &mere) {
 
 	while (itP != pere.genes.end() && itM != mere.genes.end()) {
 		if (itP == pere.genes.end()) {
-			this->genes[itM->first] = itM->second;
+			this->genes.emplace(itM->first, new Connection(*itM->second));
 			itM++;
 		} else if (itM == mere.genes.end()) {
-			this->genes[itP->first] = itP->second;
+			this->genes.emplace(itP->first, new Connection(*itP->second));
 			itP++;
-		} else if (itP->second.innovationNum == itM->second.innovationNum) {
-//			this->genes[itP->second.innovationNum] = std::rand() % 2 ? itP->second : itM->second;
-			this->genes[itP->second.innovationNum] = (coinFlip(gen) ? itP->second : itM->second);
+		} else if (itP->second->innovationNum == itM->second->innovationNum) {
+			if (pere.fitness == mere.fitness) {
+//				this->genes[itP->second->innovationNum] = std::rand() % 2 ? itP->second : itM->second;
+				this->genes.emplace(itP->second->innovationNum, new Connection((coinFlip(getGen()) ? *itP->second : *itM->second)));
+			} else if (pere.fitness > mere.fitness) {
+				this->genes.emplace(itP->second->innovationNum, new Connection(*itP->second));
+			} else {
+				this->genes.emplace(itM->second->innovationNum, new Connection(*itM->second));
+			}
 			itP++;
 			itM++;
 		} else {
-			if (itP->second.innovationNum < itM->second.innovationNum) {
-				if (pere.fitness > mere.fitness)
-					this->genes[itP->first] = itP->second;
+			if (itP->second->innovationNum < itM->second->innovationNum) {
+				this->genes.emplace(itP->first, new Connection(*itP->second));
 				itP++;
 			} else {
-				if (mere.fitness > pere.fitness)
-					this->genes[itM->first] = itM->second;
+				this->genes.emplace(itM->first, new Connection(*itM->second));
 				itM++;
 			}
 		}
@@ -168,9 +168,9 @@ void Genome::WeightMutation() {
 	for (auto &gene : genes) {
 		if (rand(getGen()) < mutationRates.weightMutationChance) {
 			if (rand(getGen()) < mutationRates.perturbChance){
-				gene.second.weight = weight(getGen());
+				gene.second->weight = weight(getGen());
 			} else {
-				gene.second.weight += step(getGen());
+				gene.second->weight += step(getGen());
 			}
 
 		}
@@ -181,7 +181,6 @@ void Genome::ConnectionMutate() {
 	std::uniform_real_distribution<double> randDO(0.0, 1.0);
 	if (randDO(getGen()) > mutationRates.connectionMutateChance)
 		return;
-	std::cout << "rand pass" << std::endl;
 	std::uniform_int_distribution<unsigned int> rand(0, (nodes.size() == 0 ? 0: nodes.size() - 1));
 	std::uniform_real_distribution<double> weight(-1.0, 1.0);
 	bool isOk = false;
@@ -189,32 +188,19 @@ void Genome::ConnectionMutate() {
 	unsigned int to;
 
 	std::map<unsigned int, std::vector<unsigned int>> connections;
-	/*if (!genes.empty())
-		for (auto &gene : genes)
-			connections[gene.second.fromNode].push_back(gene.second.toNode);*/
+	for (auto &gene : genes)
+		connections[gene.second->fromNode].push_back(gene.second->toNode);
 
-	std::queue<unsigned int> qNodes;
+	std::vector<unsigned int> qNodes;
 
 	while (!isOk) {
-		unsigned int tmpN1 = std::rand() % nodes.size();
-		unsigned int tmpN2 = std::rand() % nodes.size();
-		//unsigned int tmpN1 = rand(getGen());
-		//unsigned int tmpN2 = rand(getGen());
+		unsigned int tmpN1 = rand(getGen());
+		unsigned int tmpN2 = rand(getGen());
 		while (tmpN1 == tmpN2)
 			tmpN2 = rand(getGen());
 		auto it = nodes.begin();
-		int y = nodes.size();
 
-		std::cout << "size : " << y << " " << tmpN1 << std::endl;
-		for (auto &e : nodes) {
-			if (&e) std::cout << "hannn\n";
-			std::cout << e.first << std::endl;
-		}
-		for (unsigned int i = 0; i < tmpN1; i += 1)
-			if (it != nodes.end())
-				++i;
-
-		//std::advance(it, tmpN1);
+		std::advance(it, tmpN1);
 		from = it->first;
 
 
@@ -222,67 +208,57 @@ void Genome::ConnectionMutate() {
 		std::advance(it, tmpN2);
 		to = it->first;
 
-
 		for (unsigned int item = 0; item < connections[to].size(); item++) {
-			qNodes.push(connections[to][item]);
+			qNodes.push_back(connections[to][item]);
 			while (!qNodes.empty()) {
-				std::cout << "Size queue " <<  qNodes.size();
-				unsigned int tmp = qNodes.front();
-				std::cout << "\t" << tmp << std::endl;
-				qNodes.pop();
-				if (tmp == from)
+				unsigned int tmp = qNodes.back();
+				qNodes.pop_back();
+				if (tmp == from) {
+					qNodes.push_back(tmp);
 					break;
-				if (connections.find(tmp) != connections.end())
-					for (const auto &newN : connections[tmp])
-						qNodes.push(newN);
-				if (qNodes.size() > 2000) {
-					std::cout << maxNeuron << std::endl;
-					while (!qNodes.empty()) {
-						tmp = qNodes.front();
-						qNodes.pop();
-						std::cout << tmp << " ";
-					}
-					std::cout << std::endl;
 				}
-
+				for (auto &newN : connections[tmp])
+					qNodes.push_back(newN);
 			}
-			if (!qNodes.empty())
+			if (!qNodes.empty()) {
 				break;
+			}
 		}
 		if (qNodes.empty())
 			isOk = true;
 	}
 	unsigned int pos = Genome::GetInnovation();
+	genes.emplace(pos, new Connection());
 	auto &gene = genes[pos];
-	gene.toNode = to;
-	gene.fromNode = from;
-	gene.innovationNum = pos;
-	gene.weight = weight(getGen());
+	gene->toNode = to;
+	gene->fromNode = from;
+	gene->innovationNum = pos;
+	gene->weight = weight(getGen());
 }
 
 void Genome::ConnectionEnableMutation() {
 	std::uniform_real_distribution<double> rand(0.0, 1.0);
-	std::uniform_int_distribution<unsigned int> randGene(0, genes.size());
+	std::uniform_int_distribution<unsigned int> randGene(0, (genes.size() == 0 ? 0 : genes.size() - 1));
 
-	if (rand(getGen()) < mutationRates.enableMutationChance) {
+	if (!genes.empty() && rand(getGen()) < mutationRates.enableMutationChance) {
 		auto it = genes.begin();
 		unsigned int node = randGene(getGen());
 
 		for (unsigned int i = 0; i < node && it != genes.end(); i++, it++);
-		it->second.enabled = true;
+		it->second->enabled = true;
 	}
-	if (rand(getGen()) < mutationRates.disableMutationChance) {
+	if (!genes.empty() && rand(getGen()) < mutationRates.disableMutationChance) {
 		auto it = genes.begin();
 		unsigned int node = randGene(getGen());
 
 		for (unsigned int i = 0; i < node && it != genes.end(); i++, it++);
-		it->second.enabled = false;
+		it->second->enabled = false;
 	}
 }
 
 void Genome::NodeMutation() {
 	std::uniform_real_distribution<double> rand(0.0, 1.0);
-	std::uniform_int_distribution<unsigned int> randGene(0, genes.size());
+	std::uniform_int_distribution<unsigned int> randGene(0, (genes.size() == 0 ? 0 : genes.size() - 1));
 
 	if (!genes.empty() && rand(getGen()) < mutationRates.nodeMutationChance) {
 		maxNeuron++;
@@ -292,24 +268,26 @@ void Genome::NodeMutation() {
 
 		for (unsigned int i = 0; i < disableNode && it != genes.end(); i++, it++);
 
-		it->second.enabled = false;
+		it->second->enabled = false;
 
 		unsigned int pos = Genome::GetInnovation();
 		unsigned int node = Genome::GetNodeId();
-		nodes.emplace(node, node);
+		nodes.emplace(node, new Node(node));
 
+		genes.emplace(pos, new Connection());
 		auto &gene1 = genes[pos];
-		gene1.fromNode = it->second.fromNode;
-		gene1.toNode = node;
-		gene1.innovationNum = pos;
-		gene1.weight = 1.0;
+		gene1->fromNode = it->second->fromNode;
+		gene1->toNode = node;
+		gene1->innovationNum = pos;
+		gene1->weight = 1.0;
 
 		pos = Genome::GetInnovation();
+		genes.emplace(pos, new Connection());
 		auto &gene2 = genes[pos];
-		gene2.fromNode = node;
-		gene2.toNode = it->second.toNode;
-		gene2.innovationNum = pos;
-		gene2.weight = it->second.weight;
+		gene2->fromNode = node;
+		gene2->toNode = it->second->toNode;
+		gene2->innovationNum = pos;
+		gene2->weight = it->second->weight;
 
 	}
 
