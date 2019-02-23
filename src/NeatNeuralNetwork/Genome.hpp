@@ -15,10 +15,7 @@ struct MutationRate {
 		connectionMutateChance(1.00),
 		weightMutationChance(0.75),
 		perturbChance(0.10),
-		crossoverChance(0.75),
-		linkMutationChance(2.0),
 		nodeMutationChance(0.20),
-		biasMutationChance(0.40),
 		stepSize(0.10),
 		disableMutationChance(0.4),
 		enableMutationChance(0.2){
@@ -26,13 +23,16 @@ struct MutationRate {
 	double connectionMutateChance;
 	double weightMutationChance;
 	double perturbChance;
-	double crossoverChance;
-	double linkMutationChance;
 	double nodeMutationChance;
-	double biasMutationChance;
 	double stepSize;
 	double disableMutationChance;
 	double enableMutationChance;
+
+///	The disabled bois
+
+//	double crossoverChance;
+//	double linkMutationChance;
+//	double biasMutationChance;
 };
 
 struct SpeciatingParameter {
@@ -92,9 +92,7 @@ public:
 		this->calculated = false;
 	}
 
-	double Update(std::map<unsigned int, std::unique_ptr<Connection>> &genes,
-		      std::map<unsigned int, std::unique_ptr<Node>> &nodes,
-		      NetworkInfo const &info) {
+	double Update(std::map<unsigned int, std::unique_ptr<Connection>> &genes, std::map<unsigned int, std::unique_ptr<Node>> &nodes, NetworkInfo const &info) {
 		if (id < info.inputSize + info.biasSize || calculated)
 			return value;
 		value = 0.0;
@@ -115,6 +113,7 @@ public:
 class Genome : public SnakeAPI {
 public:
 	Direction computeDirection() const final;
+	void graphicalTic() final;
 
 	Genome(NetworkInfo const &info, MutationRate const &rates);
 	Genome(const Genome& other);
@@ -131,6 +130,10 @@ public:
 	void Update();
 	void Mutate();
 	void Crossover(Genome &pere, Genome &mere);
+
+	void GetInApple();
+	void GetInBody();
+	void GetInWall();
 
 	void WeightMutation();
 	void ConnectionMutate();

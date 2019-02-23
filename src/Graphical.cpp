@@ -5,7 +5,7 @@
 #include <SFML/Window/Event.hpp>
 #include "Graphical.hpp"
 
-Graphical::Graphical(int size, int width, bool duo):
+Graphical::Graphical(int size, int width):
 	window(sf::VideoMode(width * 2, width), "AI Battle", sf::Style::Close, sf::ContextSettings(0, 0, 10)),
 	widthMap(size){
 
@@ -17,11 +17,11 @@ Graphical::Graphical(int size, int width, bool duo):
 	//circle.setOutlineColor(sf::Color(211,211,211,255));
 }
 
-void Graphical::draw(std::vector<std::vector<char>> const &left, std::vector<std::vector<char>> const &right) {
+void Graphical::draw(SnakeAPI::map_t const &left, SnakeAPI::map_t const &right) {
 	int i = 1;
 
-	for (int x = 0; x < left.size(); x++) {
-		for (int y = 0; y < left[x].size(); y++) {
+	for (int y = 0; y < left.size(); y++) {
+		for (int x = 0; x < left[x].size(); x++) {
 			if (left[x][y] == 'S')
 				circle.setFillColor(sf::Color::Green);
 			else if (left[x][y] == 'A')
@@ -34,11 +34,11 @@ void Graphical::draw(std::vector<std::vector<char>> const &left, std::vector<std
 	}
 
 	i = left.size() + 3;
-	for (int x = 0; x < right.size(); x++) {
-		for (int y = 0; y < right[x].size(); y++) {
-			if (right[x][y] == 'S')
+	for (int y = 0; y < right.size(); y++) {
+		for (int x = 0; x < right[x].size(); x++) {
+			if (right[y][x] == 'S')
 				circle.setFillColor(sf::Color::Green);
-			else if (right[x][y] == 'A')
+			else if (right[y][x] == 'A')
 				circle.setFillColor(sf::Color::Red);
 			else
 				circle.setFillColor(sf::Color::Black);
@@ -64,6 +64,24 @@ void Graphical::draw(std::vector<std::vector<char>> const &left, std::vector<std
 		window.draw(circle);
 		circle.setPosition((right.size() + left.size() + 3) * widthCircle, (y) * widthCircle);
 		window.draw(circle);
+	}
+}
+
+void Graphical::draw(SnakeAPI::map_t const &tableau) {
+	int i;
+
+	i = tableau.size() / 2 + 3;
+	for (int x = 0; x < tableau.size(); x++) {
+		for (int y = 0; y < tableau[x].size(); y++) {
+			if (tableau[y][x] == 'S')
+				circle.setFillColor(sf::Color::Green);
+			else if (tableau[y][x] == 'A')
+				circle.setFillColor(sf::Color::Red);
+			else
+				circle.setFillColor(sf::Color::Black);
+			circle.setPosition((i + x) * widthCircle, (y + 1) * widthCircle);
+			window.draw(circle);
+		}
 	}
 }
 

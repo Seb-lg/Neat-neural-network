@@ -19,12 +19,15 @@ add_executable(Neat_neural_network
         src/SnakeAPI/snakeAPI.cpp
         src/SnakeAPI/snakeAPI.hpp
 
-        Main.cpp src/Snake/Snake.cpp src/Snake/Snake.hpp)
-        #src/Graphical.cpp
-        #src/Graphical.hpp
+        src/Graphical.cpp
+        src/Graphical.hpp
 
-# target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-audio.so)
-# target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-graphics.so)
-# target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-window.so)
-# target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-system.so)
+        src/Snake/Snake.cpp
+        src/Snake/Snake.hpp
+        Main.cpp)
+
+target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-audio.so)
+target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-graphics.so)
+target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-window.so)
+target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-system.so)
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libpthread.so)

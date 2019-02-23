@@ -6,15 +6,16 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
+#include "SnakeAPI/snakeAPI.hpp"
 
 class Graphical {
 public:
 	Graphical() = delete;
 
-	Graphical(int size, int width, bool duo);
+	Graphical(int size, int width);
 
-	void draw(std::vector<std::vector<char>> const &left, std::vector<std::vector<char>> const &right);
-	void draw(std::vector<std::vector<char>> const &tableau);
+	void draw(SnakeAPI::map_t const &left, SnakeAPI::map_t const &right);
+	void draw(SnakeAPI::map_t const &tableau);
 
 	void update();
 

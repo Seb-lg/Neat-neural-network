@@ -22,7 +22,7 @@ int main() {
 	info.functionalNodes = info.outputSize + info.biasSize + info.inputSize;
 	MutationRate rates;
 
-	std::vector<Genome> population;
+	/*std::vector<Genome> population;
 
 	population.reserve(30);
 	for (int i = 0; i < 30; i++) {
@@ -53,29 +53,21 @@ int main() {
 
 	POOL.~ThreadPool<decltype(population.begin())>();
 
-	/*for (auto &item : population) {
+	for (auto &item : population) {
 		for (int i = 0; i < 100; i++)
 			item.Mutate();
-	}*/
+	}
 
 	for (auto &item2 : population) {
 		std::cout << item2.genes.size() << "\t" << item2.nodes.size() << std::endl;
-	}
+	}*/
 
-	std::vector<std::vector<char>> map1;
-	std::vector<std::vector<char>> map2;
+	Genome test(info, rates);
 
-	map1.resize(CARRE);
-	for (auto &item : map1) {
-		item.resize(CARRE, ' ');
-	}
-
-	map2.resize(CARRE);
-	for (auto &item : map2) {
-		item.resize(CARRE, ' ');
-	}
+	test.run();
 
 	return 0;
+
 	/*map1[0][0] = 'S';
 	map1[1][0] = 'S';
 	map1[0][1] = 'S';

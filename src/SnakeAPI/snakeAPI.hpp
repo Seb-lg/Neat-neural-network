@@ -1,6 +1,8 @@
+#pragma once
 
 #include <vector>
 #include <array>
+
 
 class SnakeAPI {
 public:
@@ -10,7 +12,7 @@ public:
 
     static constexpr char apple = 'A';
     static constexpr char snake = 'S';
-    static constexpr char nothing = 0;
+    static constexpr char nothing = ' ';
 
     using posUnit_t = std::size_t;
     static constexpr posUnit_t mapSize = 50;
@@ -24,6 +26,7 @@ public:
 protected:
 
     virtual Direction computeDirection() const = 0;
+    virtual void graphicalTic() = 0;
 
     map_t const &getMap(void) const {return _map;}
     pos_t const &getApplePos(void) const {return _applePos;}
@@ -41,12 +44,3 @@ private:
     bool generateNewApple(void);
     bool nextTic(Direction);
 };
-
-
-/* exemples of class :*/
-
-/*
-class Bla : public SnakeAPI {
-    Direction computeDirection() const final {}
-};
- * */
