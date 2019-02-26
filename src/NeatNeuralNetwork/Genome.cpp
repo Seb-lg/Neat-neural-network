@@ -4,9 +4,11 @@
 
 #include "Genome.hpp"
 #include "../Graphical.hpp"
+#include "../../../.CLion2018.3/system/.remote/62.210.76.136_22/2424eed3-37c6-45b5-a747-61d3ec9c2d45/usr/include/c++/7/bits/locale_facets.tcc"
 #include <iostream>
 #include <queue>
 #include <map>
+#include <list>
 #include <thread>
 
 auto &getGen() {
@@ -16,7 +18,30 @@ auto &getGen() {
 	return (gen);
 }
 
-SnakeAPI::Direction Genome::computeDirection() const {
+SnakeAPI::Direction Genome::computeDirection() {
+	int max = 0;
+	double maxVal = -2.0;
+	this->Update();
+
+	for (unsigned int i = 0; i < networkInfo.outputSize; i++) {
+		if (nodes[i + networkInfo.inputSize + networkInfo.biasSize]->value > maxVal) {
+			max = i;
+			maxVal = nodes[i + networkInfo.inputSize + networkInfo.biasSize]->value;
+		}
+	}
+
+	switch (max) {
+		case 0:
+			return SnakeAPI::Direction::Up;
+		case 1:
+			return SnakeAPI::Direction::Right;
+		case 2:
+			return SnakeAPI::Direction::Left;
+		case 3:
+			return SnakeAPI::Direction::Down;
+		default:
+			std::cout << "IMPOSSIBLE MOVE" << std::endl;
+	}
 	return SnakeAPI::Direction::Right;
 }
 
@@ -31,7 +56,6 @@ void Genome::graphicalTic() {
 Genome::Genome(NetworkInfo const &info, MutationRate const &rates): SnakeAPI() {
 	mutationRates = rates;
 	networkInfo = info;
-	maxNeuron = networkInfo.functionalNodes;
 
 	for (unsigned int i = 0; i < networkInfo.inputSize + networkInfo.biasSize + networkInfo.outputSize; i++){
 		nodes.emplace(i, new Node(i));
@@ -93,7 +117,6 @@ Genome &Genome::operator=(const Genome &other)
 		this->genes.emplace(e.first, new Connection(*e.second));
 	for (auto const &e : other.nodes)
 		this->nodes.emplace(e.first, new Node(*e.second));
-	this->maxNeuron = other.maxNeuron;
 
 	return (*this);
 }
@@ -113,6 +136,10 @@ unsigned int Genome::GetNodeId() {
 void Genome::Update() {
 	for (auto &node : nodes) {
 		node.second->calculated = false;
+	}
+
+	for (unsigned int j = networkInfo.inputSize; j < networkInfo.inputSize + networkInfo.biasSize; j++) {
+		nodes[j]->value = 1.0;
 	}
 
 	GetInApple();
@@ -143,7 +170,7 @@ void Genome::Crossover(Genome &pere, Genome &mere) {
 	auto itP = pere.genes.begin();
 	auto itM = mere.genes.begin();
 
-	while (itP != pere.genes.end() && itM != mere.genes.end()) {
+	while (itP != pere.genes.end() || itM != mere.genes.end()) {
 		if (itP == pere.genes.end()) {
 			this->genes.emplace(itM->first, new Connection(*itM->second));
 			itM++;
@@ -170,6 +197,45 @@ void Genome::Crossover(Genome &pere, Genome &mere) {
 			}
 		}
 	}
+	for (unsigned int i = 0; i < networkInfo.inputSize + networkInfo.biasSize + networkInfo.outputSize; i++){
+		nodes.emplace(i, new Node(i));
+	}
+	for (const auto &gene : genes) {
+		nodes.try_emplace(gene.second->fromNode, new Node(gene.second->fromNode));
+		nodes.try_emplace(gene.second->toNode, new Node(gene.second->toNode));
+	}
+}
+
+void Genome::save(unsigned int generation) {
+	std::ofstream output;
+	std::string file;
+	file = "./hall_of_champions/Champion_" + std::to_string(generation) + "_fit_" + std::to_string(fitness) + ".txt";
+	output.open(file);
+	if (!output.is_open()){
+		std::cerr << "Couldn't open file '" << file << "' !";
+		return ;
+	}
+	output << genes.size() << std::endl;
+	for (const auto &gene : genes) {
+		gene.second->save(output);
+	}
+}
+
+void Genome::load(std::string file) {
+	std::ifstream input;
+	unsigned int size;
+	Connection tmp;
+
+	input.open(file);
+	if (!input.is_open()){
+		std::cerr << "Couldn't open file '" << file << "' !";
+		return ;
+	}
+	input >> size;
+	for (unsigned int i = 0; i <= size; i++) {
+		tmp.load(input);
+		genes.emplace(tmp.innovationNum, new Connection(tmp));
+	}
 	for (const auto &gene : genes) {
 		nodes.try_emplace(gene.second->fromNode, new Node(gene.second->fromNode));
 		nodes.try_emplace(gene.second->toNode, new Node(gene.second->toNode));
@@ -183,8 +249,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[0]->calculated = true;
 	nodes[0]->value = 1.0;			/// LEFT
-	for (unsigned long i = 1; head.first - i >= 0 ; ++i) {
-		if (getMap()[head.first - i][head.second] == apple) {
+	for (long i = 1; head.first - i >= 0 ; ++i) {
+		if (getMap()[head.second][head.first - i] == apple) {
 			dist = i;
 			break;
 		}
@@ -195,8 +261,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[1]->calculated = true;
 	nodes[1]->value = 1.0;			/// LEFT-UP
-	for (unsigned long i = 1; head.first - i >= 0 && head.second - i >= 0 ; ++i) {
-		if (getMap()[head.first - i][head.second - i] == apple) {
+	for (long i = 1; head.first - i >= 0 && head.second - i >= 0 ; ++i) {
+		if (getMap()[head.second - i][head.first - i] == apple) {
 			dist = i;
 			break;
 		}
@@ -207,8 +273,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[2]->calculated = true;
 	nodes[2]->value = 1.0;			/// UP
-	for (unsigned long i = 1; head.second - i >= 0 ; ++i) {
-		if (getMap()[head.first][head.second - i] == apple) {
+	for (long i = 1; head.second - i >= 0 ; ++i) {
+		if (getMap()[head.second - i][head.first] == apple) {
 			dist = i;
 			break;
 		}
@@ -219,8 +285,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[3]->calculated = true;
 	nodes[3]->value = 1.0;			/// UP-RIGHT
-	for (unsigned long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first + i][head.second + i] == apple) {
+	for (long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first + i] == apple) {
 			dist = i;
 			break;
 		}
@@ -231,8 +297,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[4]->calculated = true;
 	nodes[4]->value = 1.0;			/// RIGHT
-	for (unsigned long i = 1; head.first + i < mapSize ; ++i) {
-		if (getMap()[head.first + i][head.second] == apple) {
+	for (long i = 1; head.first + i < mapSize ; ++i) {
+		if (getMap()[head.second][head.first + i] == apple) {
 			dist = i;
 			break;
 		}
@@ -242,8 +308,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[5]->calculated = true;
 	nodes[5]->value = 1.0;			/// RIGHT-DOWN
-	for (unsigned long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first + i][head.second + i] == apple) {
+	for (long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first + i] == apple) {
 			dist = i;
 			break;
 		}
@@ -254,8 +320,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[6]->calculated = true;
 	nodes[6]->value = 1.0;			/// DOWN
-	for (unsigned long i = 1; head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first][head.second + i] == apple) {
+	for (long i = 1; head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first] == apple) {
 			dist = i;
 			break;
 		}
@@ -265,8 +331,8 @@ void Genome::GetInApple() {
 	dist = mapSize;
 	nodes[7]->calculated = true;
 	nodes[7]->value = 1.0;			/// DOWN-LEFT
-	for (unsigned long i = 1; head.first - i >= 0 && head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first - i][head.second + i] == apple) {
+	for (long i = 1; head.first - i >= 0 && head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first - i] == apple) {
 			dist = i;
 			break;
 		}
@@ -281,8 +347,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[0 + 8]->calculated = true;
 	nodes[0 + 8]->value = 1.0;		/// LEFT
-	for (unsigned long i = 1; head.first - i >= 0 ; ++i) {
-		if (getMap()[head.first - i][head.second] == snake) {
+	for (long i = 1; head.first - i >= 0 ; ++i) {
+		if (getMap()[head.second][head.first - i] == snake) {
 			dist = i;
 			break;
 		}
@@ -293,8 +359,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[1 + 8]->calculated = true;
 	nodes[1 + 8]->value = 1.0;		/// LEFT-UP
-	for (unsigned long i = 1; head.first - i >= 0 && head.second - i >= 0 ; ++i) {
-		if (getMap()[head.first - i][head.second - i] == snake) {
+	for (long i = 1; head.first - i >= 0 && head.second - i >= 0 ; ++i) {
+		if (getMap()[head.second - i][head.first - i] == snake) {
 			dist = i;
 			break;
 		}
@@ -305,8 +371,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[2 + 8]->calculated = true;
 	nodes[2 + 8]->value = 1.0;		/// UP
-	for (unsigned long i = 1; head.second - i >= 0 ; ++i) {
-		if (getMap()[head.first][head.second - i] == snake) {
+	for (long i = 1; head.second - i >= 0 ; ++i) {
+		if (getMap()[head.second - i][head.first] == snake) {
 			dist = i;
 			break;
 		}
@@ -317,8 +383,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[3 + 8]->calculated = true;
 	nodes[3 + 8]->value = 1.0;		/// UP-RIGHT
-	for (unsigned long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first + i][head.second + i] == snake) {
+	for (long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first + i] == snake) {
 			dist = i;
 			break;
 		}
@@ -329,8 +395,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[4 + 8]->calculated = true;
 	nodes[4 + 8]->value = 1.0;		/// RIGHT
-	for (unsigned long i = 1; head.first + i < mapSize ; ++i) {
-		if (getMap()[head.first + i][head.second] == snake) {
+	for (long i = 1; head.first + i < mapSize ; ++i) {
+		if (getMap()[head.second][head.first + i] == snake) {
 			dist = i;
 			break;
 		}
@@ -340,8 +406,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[5 + 8]->calculated = true;
 	nodes[5 + 8]->value = 1.0;		/// RIGHT-DOWN
-	for (unsigned long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first + i][head.second + i] == snake) {
+	for (long i = 1; head.first + i < mapSize && head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first + i] == snake) {
 			dist = i;
 			break;
 		}
@@ -352,8 +418,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[6 + 8]->calculated = true;
 	nodes[6 + 8]->value = 1.0;		/// DOWN
-	for (unsigned long i = 1; head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first][head.second + i] == snake) {
+	for (long i = 1; head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first] == snake) {
 			dist = i;
 			break;
 		}
@@ -363,8 +429,8 @@ void Genome::GetInBody() {
 	dist = mapSize;
 	nodes[7 + 8]->calculated = true;
 	nodes[7 + 8]->value = 1.0;		/// DOWN-LEFT
-	for (unsigned long i = 1; head.first - i >= 0 && head.second + i < mapSize ; ++i) {
-		if (getMap()[head.first - i][head.second + i] == snake) {
+	for (long i = 1; head.first - i >= 0 && head.second + i < mapSize ; ++i) {
+		if (getMap()[head.second + i][head.first - i] == snake) {
 			dist = i;
 			break;
 		}
@@ -434,36 +500,50 @@ void Genome::WeightMutation() {
 }
 
 void Genome::ConnectionMutate() {
+
 	std::uniform_real_distribution<double> randDO(0.0, 1.0);
 	if (randDO(getGen()) > mutationRates.connectionMutateChance)
 		return;
-	std::uniform_int_distribution<unsigned int> rand(0, (nodes.size() == 0 ? 0: nodes.size() - 1));
+//	std::cout << "enter connection mutate " << genes.size() << std::endl;
+	std::uniform_int_distribution<unsigned int> randfrom(0, nodes.size() - 1 - networkInfo.outputSize);
+	std::uniform_int_distribution<unsigned int> randto(0, nodes.size() - 1 - networkInfo.inputSize - networkInfo.biasSize);
 	std::uniform_real_distribution<double> weight(-1.0, 1.0);
 	bool isOk = false;
 	unsigned int from;
 	unsigned int to;
 
 	std::map<unsigned int, std::vector<unsigned int>> connections;
-	for (auto &gene : genes)
+	for (auto &nd : nodes)
+		connections[nd.first];
+	for (auto &gene : genes) {
+//		if (connections.find(gene.first) == connections.end())
+//			std::cout << "FUUUUCK" << std::endl;
 		connections[gene.second->fromNode].push_back(gene.second->toNode);
+	}
 
 	std::vector<unsigned int> qNodes;
-
 	while (!isOk) {
-		unsigned int tmpN1 = rand(getGen());
-		unsigned int tmpN2 = rand(getGen());
-		while (tmpN1 == tmpN2)
-			tmpN2 = rand(getGen());
-		auto it = nodes.begin();
+		unsigned int tmpfrom = randfrom(getGen());
+		unsigned int tmpto = randto(getGen()) + networkInfo.inputSize + networkInfo.biasSize;
 
-		std::advance(it, tmpN1);
+
+		if (tmpfrom > networkInfo.inputSize + networkInfo.biasSize)
+			tmpfrom += networkInfo.outputSize;
+
+		while (tmpfrom == tmpto) {
+			tmpto = randto(getGen()) + networkInfo.inputSize + networkInfo.biasSize;
+		}
+
+		auto it = nodes.begin();
+		std::advance(it, tmpfrom);
 		from = it->first;
 
 
 		it = nodes.begin();
-		std::advance(it, tmpN2);
+		std::advance(it, tmpto);
 		to = it->first;
 
+		qNodes.clear();
 		for (unsigned int item = 0; item < connections[to].size(); item++) {
 			qNodes.push_back(connections[to][item]);
 			while (!qNodes.empty()) {
@@ -473,8 +553,12 @@ void Genome::ConnectionMutate() {
 					qNodes.push_back(tmp);
 					break;
 				}
+				if (qNodes.size() >= 99) {
+					std::cout << "WAW" << std::endl;
+				}
 				for (auto &newN : connections[tmp])
-					qNodes.push_back(newN);
+					if (connections.find(newN) != connections.end())
+						qNodes.emplace_back(newN);
 			}
 			if (!qNodes.empty()) {
 				break;
@@ -483,13 +567,14 @@ void Genome::ConnectionMutate() {
 		if (qNodes.empty())
 			isOk = true;
 	}
+
 	unsigned int pos = Genome::GetInnovation();
-	genes.emplace(pos, new Connection());
-	auto &gene = genes[pos];
-	gene->toNode = to;
-	gene->fromNode = from;
-	gene->innovationNum = pos;
-	gene->weight = weight(getGen());
+	auto gene = genes.emplace(pos, new Connection()).first;
+	gene->second->toNode = to;
+	gene->second->fromNode = from;
+	gene->second->innovationNum = pos;
+	gene->second->weight = weight(getGen());
+//	std::cout << "exit connection mutate " << genes.size() << std::endl;
 }
 
 void Genome::ConnectionEnableMutation() {
@@ -517,7 +602,6 @@ void Genome::NodeMutation() {
 	std::uniform_int_distribution<unsigned int> randGene(0, (genes.size() == 0 ? 0 : genes.size() - 1));
 
 	if (!genes.empty() && rand(getGen()) < mutationRates.nodeMutationChance) {
-		maxNeuron++;
 		unsigned int disableNode = randGene(getGen());
 
 		auto it = genes.begin();

@@ -4,14 +4,22 @@
 #include <iterator>
 #include <cstring>
 
-std::size_t SnakeAPI::run(void)
+std::size_t SnakeAPI::runGraphical()
 {
-    Direction dir;
-
     generateMap();
 
     do {
         graphicalTic(); // if you don't want to have graphical print, just do an empty function.
+    } while (nextTic(computeDirection()));
+    return _points;
+}
+
+std::size_t SnakeAPI::run()
+{
+    generateMap();
+
+    do {
+        // if you don't want to have graphical print, just do an empty function.
     } while (nextTic(computeDirection()));
     return _points;
 }
@@ -42,15 +50,16 @@ bool SnakeAPI::nextTic(Direction dir)
         return false;
     }
     if (_map[nPos.second][nPos.first] == apple) {
-        if (generateNewApple() == false)
+        if (!generateNewApple())
             return false;
         _snake.push_back(_snake.back());
-        ++_points;
+        _points += 250;
     }
     _map[_snake.back().second][_snake.back().first] = nothing;
     std::memmove(_snake.data() + 1, _snake.data(), (_snake.size() - 1) * sizeof(_snake[0]));
     _snake[0] = nPos;
     _map[nPos.second][nPos.first] = snake;
+    _points += 1;
     return true;
 }
 

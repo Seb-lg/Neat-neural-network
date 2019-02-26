@@ -15,12 +15,13 @@
 template <typename T>
 class ThreadPool {
 public:
-	ThreadPool(std::function<void(T)> func, int nbWorkers = 4): work(static_cast<unsigned long>(nbWorkers)), slaves(nbWorkers)
+	ThreadPool(std::function<void(T)> func, int nbSlaves = 4): work(nbSlaves), slaves(nbSlaves)
 	{
 		alive = true;
-		status.resize(nbWorkers);
-		for (int i = 0; i < nbWorkers; i++) {
+		status.resize(slaves, true);
+		workers.reserve(slaves);
 
+		for (int i = 0; i < slaves; i++) {
 			workers.emplace_back([this, func, i](){
 				T ob;
 				while (alive) {
@@ -42,9 +43,8 @@ public:
 
 	~ThreadPool() {
 		alive = false;
-		for (auto &a: workers)
-			if (a.joinable())
-				a.join();
+		for (int i = 0; i < slaves; i++)
+			workers[i].join();
 	}
 
 	void addTask(T newWork) {
@@ -66,8 +66,8 @@ public:
 	}
 
 	bool isDone() {
-		for (auto &wlist : work)
-			if (!wlist.second.empty())
+		for (int i = 0; i < slaves; i++)
+			if (status[i])
 				return false;
 		return true;
 	}

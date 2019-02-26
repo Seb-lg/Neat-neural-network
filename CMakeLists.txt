@@ -24,7 +24,7 @@ add_executable(Neat_neural_network
 
         src/Snake/Snake.cpp
         src/Snake/Snake.hpp
-        Main.cpp)
+        Main.cpp src/NeatNeuralNetwork/Node.cpp src/NeatNeuralNetwork/Node.hpp src/NeatNeuralNetwork/NeatInfos.hpp src/NeatNeuralNetwork/Connection.cpp src/NeatNeuralNetwork/Connection.hpp)
 
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-audio.so)
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-graphics.so)

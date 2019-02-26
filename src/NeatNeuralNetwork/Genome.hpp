@@ -9,110 +9,11 @@
 #include <algorithm>
 #include <memory>
 #include "../SnakeAPI/snakeAPI.hpp"
-
-struct MutationRate {
-	MutationRate():
-		connectionMutateChance(1.00),
-		weightMutationChance(0.75),
-		perturbChance(0.10),
-		nodeMutationChance(0.20),
-		stepSize(0.10),
-		disableMutationChance(0.4),
-		enableMutationChance(0.2){
-	}
-	double connectionMutateChance;
-	double weightMutationChance;
-	double perturbChance;
-	double nodeMutationChance;
-	double stepSize;
-	double disableMutationChance;
-	double enableMutationChance;
-
-///	The disabled bois
-
-//	double crossoverChance;
-//	double linkMutationChance;
-//	double biasMutationChance;
-};
-
-struct SpeciatingParameter {
-	SpeciatingParameter():
-		population(240),
-		deltaDisjoint(2.0),
-		deltaWeights(0.4),
-		deltaThreshold(1.3),
-		staleSpecies(15) {
-
-	}
-	unsigned int	population;
-	double		deltaDisjoint;
-	double		deltaWeights;
-	double		deltaThreshold;
-	unsigned int	staleSpecies;
-};
-
-struct NetworkInfo {
-	unsigned int	inputSize;
-	unsigned int	biasSize;
-	unsigned int	outputSize;
-	unsigned int	functionalNodes;
-};
-
-struct Connection {
-	Connection():
-		innovationNum(0),
-		fromNode(0),
-		toNode(0),
-		weight(0.0),
-		enabled(true){
-	}
-	unsigned int	innovationNum;
-	unsigned int	fromNode;
-	unsigned int	toNode;
-	double		weight;
-	bool		enabled;
-};
-
-class Node {
-public:
-	Node() {
-		this->id = 0;
-		this->value = 0.0;
-		this->calculated = false;
-	}
-
-	Node(const Node &other) {
-		this->id = other.id;
-		this->value = other.value;
-		this->calculated = other.calculated;
-	}
-	Node(unsigned int id) {
-		this->id = id;
-		this->value = 0.0;
-		this->calculated = false;
-	}
-
-	double Update(std::map<unsigned int, std::unique_ptr<Connection>> &genes, std::map<unsigned int, std::unique_ptr<Node>> &nodes, NetworkInfo const &info) {
-		if (id < info.inputSize + info.biasSize || calculated)
-			return value;
-		value = 0.0;
-		for (const auto &gene : genes) {
-			if (gene.second->toNode == id)
-				value += nodes[gene.second->fromNode]->Update(genes, nodes, info);
-		}
-		value = value / (1 + std::abs(value));
-		calculated = true;
-		return value;
-	}
-
-	unsigned int	id;
-	double		value;
-	bool		calculated;
-};
+#include "Node.hpp"
 
 class Genome : public SnakeAPI {
 public:
-	Direction computeDirection() const final;
+	Direction computeDirection() final;
 	void graphicalTic() final;
 
 	Genome(NetworkInfo const &info, MutationRate const &rates);
@@ -120,7 +21,6 @@ public:
 	Genome(Genome& pere, Genome& mere);
 
 	~Genome() = default;
-
 
 	Genome &operator=(const Genome &other);
 
@@ -130,6 +30,9 @@ public:
 	void Update();
 	void Mutate();
 	void Crossover(Genome &pere, Genome &mere);
+
+	void save(unsigned int generation);
+	void load(std::string file);
 
 	void GetInApple();
 	void GetInBody();

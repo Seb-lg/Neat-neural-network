@@ -14,18 +14,20 @@ public:
     static constexpr char snake = 'S';
     static constexpr char nothing = ' ';
 
-    using posUnit_t = std::size_t;
+//    using posUnit_t = std::size_t;
+    using posUnit_t = long;
     static constexpr posUnit_t mapSize = 50;
     using pos_t = std::pair<posUnit_t, posUnit_t>; // (x, y) 
     using map_t = std::array<std::array<char, mapSize>, mapSize>;
 
     uint64_t run(void); // return the points
+    uint64_t runGraphical(void); // return the points
 
     uint64_t getPoints(void) const {return _points;}
 
 protected:
 
-    virtual Direction computeDirection() const = 0;
+    virtual Direction computeDirection() = 0;
     virtual void graphicalTic() = 0;
 
     map_t const &getMap(void) const {return _map;}
