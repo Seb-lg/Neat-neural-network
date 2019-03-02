@@ -6,6 +6,8 @@
 
 std::size_t SnakeAPI::runGraphical()
 {
+    _points = 0;
+    _food = 250;
     generateMap();
 
     do {
@@ -16,6 +18,8 @@ std::size_t SnakeAPI::runGraphical()
 
 std::size_t SnakeAPI::run()
 {
+    _points = 0;
+    _food = 250;
     generateMap();
 
     do {
@@ -30,22 +34,20 @@ bool SnakeAPI::nextTic(Direction dir)
 
     switch (dir) {
         case Direction::Up:
-            if (nPos.second-- == 0)
-                return false;
+            nPos.second--;
             break;
         case Direction::Down: 
-            if (nPos.second++ == mapSize - 1)
-                return false;
+            nPos.second++;
             break;
         case Direction::Left:
-            if (nPos.first-- == 0)
-                return false;
+            nPos.first--;
             break;
         case Direction::Right:
-            if (nPos.first++ == mapSize - 1)
-                return false;
+            nPos.first++;
             break;
     }
+    if (nPos.second < 0 || nPos.second >= 50 || nPos.first < 0 || nPos.first >= 50)
+    	return false;
     if (_map[nPos.second][nPos.first] == snake) {
         return false;
     }
@@ -53,18 +55,23 @@ bool SnakeAPI::nextTic(Direction dir)
         if (!generateNewApple())
             return false;
         _snake.push_back(_snake.back());
-        _points += 250;
+        _points += 200;
+        _food += 250;
     }
     _map[_snake.back().second][_snake.back().first] = nothing;
     std::memmove(_snake.data() + 1, _snake.data(), (_snake.size() - 1) * sizeof(_snake[0]));
     _snake[0] = nPos;
     _map[nPos.second][nPos.first] = snake;
     _points += 1;
+    _food--;
+    if (_food == 0)
+        return false;
     return true;
 }
 
 void SnakeAPI::generateMap(void)
 {
+    _snake.clear();
     for (posUnit_t y = 0; y < mapSize; ++y) {
         for (posUnit_t x = 0; x < mapSize; ++x) {
             _map[y][x] = nothing;
@@ -77,6 +84,7 @@ void SnakeAPI::generateMap(void)
     _snake.push_back(std::make_pair(mapSize / 2, mapSize / 2));
     _snake.push_back(std::make_pair(mapSize / 2 - 1, mapSize / 2));
     generateNewApple();
+//    _map[20][20] = apple;
 }
 
 bool SnakeAPI::generateNewApple(void)

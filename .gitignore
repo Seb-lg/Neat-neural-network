@@ -40,3 +40,4 @@ Makefile
 Neat_neural_network
 Neat_neural_network.cbp
 cmake_install.cmake
+hall_of_champions/*

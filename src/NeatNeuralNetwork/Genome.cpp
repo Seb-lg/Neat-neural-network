@@ -4,13 +4,11 @@
 
 #include "Genome.hpp"
 #include "../Graphical.hpp"
-#include "../../../.CLion2018.3/system/.remote/62.210.76.136_22/2424eed3-37c6-45b5-a747-61d3ec9c2d45/usr/include/c++/7/bits/locale_facets.tcc"
 #include <iostream>
 #include <queue>
 #include <map>
 #include <list>
 #include <thread>
-
 auto &getGen() {
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
@@ -45,9 +43,8 @@ SnakeAPI::Direction Genome::computeDirection() {
 	return SnakeAPI::Direction::Right;
 }
 
+Graphical gr(50, 750);
 void Genome::graphicalTic() {
-	static Graphical gr(50, 750);
-
 	gr.draw(getMap());
 	gr.update();
 	std::this_thread::sleep_for(std::chrono::microseconds(16666));
@@ -84,13 +81,13 @@ Genome::Genome(Genome &pere, Genome &mere): SnakeAPI() {
 			this->genes.emplace(itP->first, new Connection(*itP->second));
 			itP++;
 		} else if (itP->second->innovationNum == itM->second->innovationNum) {
-			if (pere.fitness == mere.fitness) {
+//			if (pere.fitness == mere.fitness) {
 				this->genes.emplace(itP->second->innovationNum, new Connection((coinFlip(getGen()) ? *itP->second : *itM->second)));
-			} else if (pere.fitness > mere.fitness) {
-				this->genes.emplace(itP->second->innovationNum, new Connection(*itP->second));
-			} else {
-				this->genes.emplace(itM->second->innovationNum, new Connection(*itM->second));
-			}
+//			} else if (pere.fitness > mere.fitness) {
+//				this->genes.emplace(itP->second->innovationNum, new Connection(*itP->second));
+//			} else {
+//				this->genes.emplace(itM->second->innovationNum, new Connection(*itM->second));
+//			}
 			itP++;
 			itM++;
 		} else {
@@ -128,7 +125,7 @@ unsigned int Genome::GetInnovation() {
 }
 
 unsigned int Genome::GetNodeId() {
-	static unsigned int id = 32;
+	static unsigned int id = 35;
 
 	return (id++);
 }
@@ -146,8 +143,27 @@ void Genome::Update() {
 	GetInBody();
 	GetInWall();
 
+	std::map<unsigned int, std::vector<unsigned int>, std::greater<>> calculation;
 	for (unsigned int i = networkInfo.inputSize + networkInfo.biasSize; i < networkInfo.inputSize + networkInfo.biasSize + networkInfo.outputSize; i++) {
-		nodes[i]->Update(genes, nodes, networkInfo);
+		calculation[0].emplace_back(i);
+	}
+
+
+	for (unsigned int pos = 0; !calculation[pos].empty(); pos++) {
+		for (auto &item : calculation[pos]) {
+			nodes[item]->Update(calculation, genes, networkInfo, pos);
+		}
+	}
+
+	for (auto it = calculation.begin(); it != calculation.end(); ++it) {
+		for (auto &item : it->second) {
+			for (const auto &gene : genes) {
+				if (gene.second->enabled && gene.second->toNode == item) {
+					nodes[item]->value += nodes[gene.second->fromNode]->value * gene.second->weight;
+				}
+			}
+			nodes[item]->value = nodes[item]->value / (1 + std::abs(nodes[item]->value));
+		}
 	}
 }
 
@@ -189,10 +205,12 @@ void Genome::Crossover(Genome &pere, Genome &mere) {
 			itM++;
 		} else {
 			if (itP->second->innovationNum < itM->second->innovationNum) {
-				this->genes.emplace(itP->first, new Connection(*itP->second));
+				if (pere.fitness >= mere.fitness)
+					this->genes.emplace(itP->first, new Connection(*itP->second));
 				itP++;
 			} else {
-				this->genes.emplace(itM->first, new Connection(*itM->second));
+				if (mere.fitness >= pere.fitness)
+					this->genes.emplace(itM->first, new Connection(*itM->second));
 				itM++;
 			}
 		}
@@ -204,6 +222,25 @@ void Genome::Crossover(Genome &pere, Genome &mere) {
 		nodes.try_emplace(gene.second->fromNode, new Node(gene.second->fromNode));
 		nodes.try_emplace(gene.second->toNode, new Node(gene.second->toNode));
 	}
+}
+
+void Genome::Crossover(Genome &clone) {
+	this->genes.clear();
+	this->nodes.clear();
+
+	this->mutationRates = clone.mutationRates;
+	this->networkInfo = clone.networkInfo;
+
+	for (const auto &item : clone.genes) {
+		this->genes.emplace(item.second->innovationNum, new Connection(*item.second));
+	}
+	for (const auto &item : clone.nodes) {
+		this->nodes.emplace(item.second->id, new Node(*item.second));
+	}
+
+
+	//std::cout << this->nodes.size() << " " << this->genes.size() << std::endl;
+	//std::cout << clone.nodes.size() << " " << clone.genes.size() << std::endl << std::endl;
 }
 
 void Genome::save(unsigned int generation) {
@@ -499,30 +536,28 @@ void Genome::WeightMutation() {
 	}
 }
 
-void Genome::ConnectionMutate() {
-
+/*void Genome::ConnectionMutate() {
 	std::uniform_real_distribution<double> randDO(0.0, 1.0);
 	if (randDO(getGen()) > mutationRates.connectionMutateChance)
 		return;
-//	std::cout << "enter connection mutate " << genes.size() << std::endl;
 	std::uniform_int_distribution<unsigned int> randfrom(0, nodes.size() - 1 - networkInfo.outputSize);
 	std::uniform_int_distribution<unsigned int> randto(0, nodes.size() - 1 - networkInfo.inputSize - networkInfo.biasSize);
 	std::uniform_real_distribution<double> weight(-1.0, 1.0);
 	bool isOk = false;
-	unsigned int from;
-	unsigned int to;
+	unsigned int from = 0;
+	unsigned int to = 0;
 
 	std::map<unsigned int, std::vector<unsigned int>> connections;
-	for (auto &nd : nodes)
-		connections[nd.first];
-	for (auto &gene : genes) {
-//		if (connections.find(gene.first) == connections.end())
-//			std::cout << "FUUUUCK" << std::endl;
+	for (auto &gene : genes)
 		connections[gene.second->fromNode].push_back(gene.second->toNode);
-	}
 
 	std::vector<unsigned int> qNodes;
 	while (!isOk) {
+		if (to != 0 || from != 0) {
+			if (std::find(connections[from].begin(), connections[from].end(), to) != connections[from].end())
+				connections[from].erase(std::find(connections[from].begin(), connections[from].end(), to));
+		}
+
 		unsigned int tmpfrom = randfrom(getGen());
 		unsigned int tmpto = randto(getGen()) + networkInfo.inputSize + networkInfo.biasSize;
 
@@ -543,9 +578,11 @@ void Genome::ConnectionMutate() {
 		std::advance(it, tmpto);
 		to = it->first;
 
+		connections[from].emplace_back(to);
+
 		qNodes.clear();
 		for (unsigned int item = 0; item < connections[to].size(); item++) {
-			qNodes.push_back(connections[to][item]);
+			qNodes.push_back(connections[from][item]);
 			while (!qNodes.empty()) {
 				unsigned int tmp = qNodes.back();
 				qNodes.pop_back();
@@ -555,10 +592,10 @@ void Genome::ConnectionMutate() {
 				}
 				if (qNodes.size() >= 99) {
 					std::cout << "WAW" << std::endl;
+					break;
 				}
 				for (auto &newN : connections[tmp])
-					if (connections.find(newN) != connections.end())
-						qNodes.emplace_back(newN);
+					qNodes.emplace_back(newN);
 			}
 			if (!qNodes.empty()) {
 				break;
@@ -575,6 +612,76 @@ void Genome::ConnectionMutate() {
 	gene->second->innovationNum = pos;
 	gene->second->weight = weight(getGen());
 //	std::cout << "exit connection mutate " << genes.size() << std::endl;
+}*/
+
+void Genome::ConnectionMutate() {
+	std::uniform_real_distribution<double> weight(-1.0, 1.0);
+	std::uniform_real_distribution<double> randDO(0.0, 1.0);
+	std::uniform_int_distribution<unsigned int> randNode(0, nodes.size() - 1);
+	if (randDO(getGen()) > mutationRates.connectionMutateChance)
+		return;
+
+	std::queue<unsigned int> qnode;
+	unsigned int from;
+	unsigned int to;
+	unsigned int tmp;
+	bool looping = true;
+
+	std::map<unsigned int, std::vector<unsigned int>> connectionNet;
+	for (auto const &gene : genes)
+		connectionNet[gene.second->fromNode].emplace_back(gene.second->toNode);
+
+	while (looping){
+		to = (randNode(getGen()) % (nodes.size() - 1 - networkInfo.inputSize - networkInfo.biasSize)) + networkInfo.inputSize + networkInfo.biasSize - 1;
+		from = randNode(getGen()) % (nodes.size() - 1 - networkInfo.outputSize);
+		if (from >= networkInfo.inputSize + networkInfo.biasSize)
+			from += networkInfo.outputSize;
+		while (from == to) {
+			from = randNode(getGen()) % (nodes.size() - 1 - networkInfo.outputSize);
+			if (from >= networkInfo.inputSize + networkInfo.biasSize)
+				from += networkInfo.outputSize;
+		}
+
+
+		from = std::next(nodes.begin(), from)->second->id;
+		to = std::next(nodes.begin(), to)->second->id;
+
+//		std::cout << "from : " << from << "\tto : " << to << std::endl;
+
+		connectionNet[from].emplace_back(to);
+		while (!qnode.empty())
+			qnode.pop();
+
+		for (auto const &item : connectionNet[to]) {
+			qnode.push(item);
+			while (!qnode.empty()) {
+				tmp = qnode.front();
+				if (tmp == from)
+					break;
+				qnode.pop();
+				for (auto const &nextn : connectionNet[tmp])
+					qnode.push(nextn);
+			}
+			if (qnode.empty()) {
+				looping = false;
+				break;
+			}
+		}
+		if (qnode.empty())
+			looping = false;
+
+		if (std::find(connectionNet[from].begin(), connectionNet[from].end(), to) != connectionNet[from].end())
+			connectionNet[from].erase(std::find(connectionNet[from].begin(), connectionNet[from].end(), to));
+
+	}
+
+
+	unsigned int pos = Genome::GetInnovation();
+	auto gene = genes.emplace(pos, new Connection()).first;
+	gene->second->toNode = to;
+	gene->second->fromNode = from;
+	gene->second->innovationNum = pos;
+	gene->second->weight = weight(getGen());
 }
 
 void Genome::ConnectionEnableMutation() {
@@ -606,7 +713,7 @@ void Genome::NodeMutation() {
 
 		auto it = genes.begin();
 
-		for (unsigned int i = 0; i < disableNode && it != genes.end(); i++, it++);
+		std::advance(it, disableNode);
 
 		it->second->enabled = false;
 

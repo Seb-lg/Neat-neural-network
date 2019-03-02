@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <queue>
 #include "NeatInfos.hpp"
 #include "Connection.hpp"
 
@@ -15,7 +16,8 @@ public:
 	Node(const Node &other);
 	Node(unsigned int id);
 
-	double Update(std::map<unsigned int, std::unique_ptr<Connection>> &genes, std::map<unsigned int, std::unique_ptr<Node>> &nodes, NetworkInfo const &info);
+
+	void Update(std::map<unsigned int, std::vector<unsigned int>, std::greater<>> &calculation, std::map<unsigned int, std::unique_ptr<Connection>> &genes, NetworkInfo const &info, unsigned int pos);
 
 	unsigned int	id;
 	double		value;

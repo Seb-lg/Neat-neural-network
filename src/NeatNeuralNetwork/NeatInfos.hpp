@@ -6,7 +6,7 @@
 
 struct MutationRate {
 	MutationRate():
-		connectionMutateChance(0.50),
+		connectionMutateChance(0.20),
 		weightMutationChance(0.75),
 		perturbChance(0.10),
 		nodeMutationChance(0.20),

@@ -30,6 +30,7 @@ public:
 	void Update();
 	void Mutate();
 	void Crossover(Genome &pere, Genome &mere);
+	void Crossover(Genome &clone);
 
 	void save(unsigned int generation);
 	void load(std::string file);
