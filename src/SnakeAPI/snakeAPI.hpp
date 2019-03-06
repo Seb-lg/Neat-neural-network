@@ -26,6 +26,7 @@ public:
     uint64_t runGraphical(void); // return the points
 
     uint64_t getPoints(void) const {return _points;}
+    unsigned long const getSnakeSize(void) const {return _snake.size();}
 
 protected:
 

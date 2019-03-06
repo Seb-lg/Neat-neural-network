@@ -6,35 +6,37 @@
 #define ECS_THREADPOOL_HPP
 
 #include <vector>
-#include <list>
+#include <queue>
 #include <thread>
 #include <functional>
 #include <mutex>
 #include <iostream>
+#include <atomic>
 
-template <typename T>
 class ThreadPool {
 public:
-	ThreadPool(std::function<void(T)> func, int nbSlaves = 4): work(nbSlaves), slaves(nbSlaves)
+	ThreadPool(int nbSlaves = 4): slaves(nbSlaves)
 	{
 		alive = true;
 		status.resize(slaves, true);
 		workers.reserve(slaves);
+		missingDone = 0;
 
 		for (int i = 0; i < slaves; i++) {
-			workers.emplace_back([this, func, i](){
-				T ob;
+			workers.emplace_back([this, i](){
+				std::function<void()> ob;
 				while (alive) {
-					work[i].first.lock();
-					if (!work[i].second.empty()) {
+					mutex.lock();
+					if (!work.empty()) {
 						status[i] = false;
-						ob = work[i].second.back();
-						work[i].second.pop_back();
-						work[i].first.unlock();
-						func(ob);
+						ob = work.front();
+						work.pop();
+						mutex.unlock();
+						ob();
+						missingDone--;
 						status[i] = true;
 					} else {
-						work[i].first.unlock();
+						mutex.unlock();
 					}
 				}
 			});
@@ -47,37 +49,31 @@ public:
 			workers[i].join();
 	}
 
-	void addTask(T newWork) {
-		static int i = 0;
-
-		work[i].second.emplace_front(newWork);
-		i++;
-		i = i % slaves;
+	void addTask(std::function<void()> newWork) {
+		work.push(newWork);
+		missingDone++;
 	}
 
 	void lockWork(){
-		for (auto &mut : work)
-			mut.first.lock();
+		mutex.lock();
 	}
 
 	void unlockWork() {
-		for (auto &mut : work)
-			mut.first.unlock();
+		mutex.unlock();
 	}
 
 	bool isDone() {
-		for (int i = 0; i < slaves; i++)
-			if (status[i])
-				return false;
-		return true;
+		return (missingDone == 0);
 	}
 
 private:
-	std::vector<bool>					status;
-	std::vector<std::thread>				workers;
-	bool 							alive;
-	std::vector<std::pair<std::mutex, std::list<T>>>	work;
-	int							slaves;
+	std::vector<bool>			status;
+	std::vector<std::thread>		workers;
+	bool 					alive;
+	std::mutex				mutex;
+	std::queue<std::function<void()>>	work;
+	std::atomic<unsigned int>		missingDone;
+	int					slaves;
 };
 
 

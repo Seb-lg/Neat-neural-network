@@ -55,15 +55,15 @@ bool SnakeAPI::nextTic(Direction dir)
         if (!generateNewApple())
             return false;
         _snake.push_back(_snake.back());
-        _points += 200;
+//        _points += 25;
         _food += 250;
     }
     _map[_snake.back().second][_snake.back().first] = nothing;
     std::memmove(_snake.data() + 1, _snake.data(), (_snake.size() - 1) * sizeof(_snake[0]));
     _snake[0] = nPos;
     _map[nPos.second][nPos.first] = snake;
-    _points += 1;
     _food--;
+    _points++;
     if (_food == 0)
         return false;
     return true;
@@ -77,12 +77,14 @@ void SnakeAPI::generateMap(void)
             _map[y][x] = nothing;
         }
     }
-    _map[mapSize / 2][mapSize / 2 + 1] = snake;
-    _map[mapSize / 2][mapSize / 2] = snake;
-    _map[mapSize / 2][mapSize / 2 - 1] = snake;
-    _snake.push_back(std::make_pair(mapSize / 2 + 1, mapSize / 2));
-    _snake.push_back(std::make_pair(mapSize / 2, mapSize / 2));
-    _snake.push_back(std::make_pair(mapSize / 2 - 1, mapSize / 2));
+    _map[0][0] = snake;
+    _map[0][1] = snake;
+    _map[0][2] = snake;
+    _map[0][3] = snake;
+    _snake.push_back(std::make_pair(3, 0));
+    _snake.push_back(std::make_pair(2, 0));
+    _snake.push_back(std::make_pair(1, 0));
+    _snake.push_back(std::make_pair(0, 0));
     generateNewApple();
 //    _map[20][20] = apple;
 }

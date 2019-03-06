@@ -15,6 +15,13 @@ add_executable(Neat_neural_network
         src/NeatNeuralNetwork/Genome.cpp
         src/NeatNeuralNetwork/Genome.hpp
 
+        src/NeatNeuralNetwork/Node.cpp
+        src/NeatNeuralNetwork/Node.hpp
+
+        src/NeatNeuralNetwork/NeatInfos.hpp
+
+        src/NeatNeuralNetwork/Connection.cpp
+        src/NeatNeuralNetwork/Connection.hpp
 
         src/SnakeAPI/snakeAPI.cpp
         src/SnakeAPI/snakeAPI.hpp
@@ -22,9 +29,7 @@ add_executable(Neat_neural_network
         src/Graphical.cpp
         src/Graphical.hpp
 
-        src/Snake/Snake.cpp
-        src/Snake/Snake.hpp
-        Main.cpp src/NeatNeuralNetwork/Node.cpp src/NeatNeuralNetwork/Node.hpp src/NeatNeuralNetwork/NeatInfos.hpp src/NeatNeuralNetwork/Connection.cpp src/NeatNeuralNetwork/Connection.hpp)
+        Main.cpp)
 
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-audio.so)
 target_link_libraries(Neat_neural_network /usr/lib/x86_64-linux-gnu/libsfml-graphics.so)

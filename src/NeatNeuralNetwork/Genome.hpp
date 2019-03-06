@@ -46,8 +46,9 @@ public:
 
 	MutationRate mutationRates;
 	NetworkInfo networkInfo;
-	std::map<unsigned int, std::unique_ptr<Connection>>	genes;
-	std::map<unsigned int, std::unique_ptr<Node>>		nodes;
+	std::map<unsigned int, std::unique_ptr<Connection>>			genes;
+	std::map<unsigned int, std::unique_ptr<Node>>				nodes;
+	std::map<unsigned int, std::vector<unsigned int>>			connectionNet;
 
 	unsigned int fitness = 0;
 	unsigned int adjusted_fitness = 0;
