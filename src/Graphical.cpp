@@ -3,6 +3,9 @@
 //
 
 #include <SFML/Window/Event.hpp>
+#include <chrono>
+#include <thread>
+#include <iostream>
 #include "Graphical.hpp"
 
 Graphical::Graphical(int size, int width):
@@ -67,18 +70,18 @@ void Graphical::draw(SnakeAPI::map_t const &left, SnakeAPI::map_t const &right) 
 	}
 }
 
-void Graphical::draw(SnakeAPI::map_t const &tableau) {
+void Graphical::draw(SnakeAPI::map_t const &tableau, sf::Color color) {
 	int i;
 
 	i = tableau.size() / 2 + 3;
 	for (int x = 0; x < tableau.size(); x++) {
 		for (int y = 0; y < tableau[x].size(); y++) {
 			if (tableau[y][x] == 'S')
-				circle.setFillColor(sf::Color::Green);
+				circle.setFillColor(color);
 			else if (tableau[y][x] == 'A')
 				circle.setFillColor(sf::Color::Red);
 			else
-				circle.setFillColor(sf::Color::Black);
+				circle.setFillColor(sf::Color(50, 50, 50, 255));
 			circle.setPosition((i + x) * widthCircle, (y + 1) * widthCircle);
 			window.draw(circle);
 		}
@@ -87,11 +90,15 @@ void Graphical::draw(SnakeAPI::map_t const &tableau) {
 
 void Graphical::update() {
 	sf::Event event;
+	static std::chrono::high_resolution_clock      _clock;
+	static unsigned long last = 0;
 
 	while (window.pollEvent(event)) {
 		if (event.type == sf::Event::Closed)
 			window.close();
 	}
+	std::this_thread::sleep_for(std::chrono::microseconds((16666 - std::chrono::duration_cast<std::chrono::microseconds>(_clock.now().time_since_epoch()).count() - last)%16666));
 	window.display();
 	window.clear();
+	last = std::chrono::duration_cast<std::chrono::microseconds>(_clock.now().time_since_epoch()).count();
 }

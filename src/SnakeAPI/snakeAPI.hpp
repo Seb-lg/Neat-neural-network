@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <SFML/Graphics/Color.hpp>
 
 
 class SnakeAPI {
@@ -23,7 +24,7 @@ public:
     using map_t = std::array<std::array<char, mapSize>, mapSize>;
 
     uint64_t run(void); // return the points
-    uint64_t runGraphical(void); // return the points
+    uint64_t runGraphical(sf::Color color); // return the points
 
     uint64_t getPoints(void) const {return _points;}
     unsigned long const getSnakeSize(void) const {return _snake.size();}
@@ -31,7 +32,7 @@ public:
 protected:
 
     virtual Direction computeDirection() = 0;
-    virtual void graphicalTic() = 0;
+    virtual void graphicalTic(sf::Color color) = 0;
 
     map_t const &getMap(void) const {return _map;}
     pos_t const &getApplePos(void) const {return _applePos;}

@@ -14,7 +14,7 @@
 class Genome : public SnakeAPI {
 public:
 	Direction computeDirection() final;
-	void graphicalTic() final;
+	void graphicalTic(sf::Color color) final;
 
 	Genome(NetworkInfo const &info, MutationRate const &rates);
 	Genome(const Genome& other);

@@ -7,12 +7,12 @@
 struct MutationRate {
 	MutationRate():
 		connectionMutateChance(2.0),
-		weightMutationChance(2.0),
-		perturbChance(0.15),
-		nodeMutationChance(0.01),
-		stepSize(0.40),
-		disableMutationChance(0.2),
-		enableMutationChance(0.2){
+		weightMutationChance(3.0),
+		perturbChance(0.2),
+		nodeMutationChance(0.75),
+		stepSize(0.3),
+		disableMutationChance(0.1),
+		enableMutationChance(0.3){
 	}
 	double connectionMutateChance;
 	double weightMutationChance;
@@ -31,10 +31,11 @@ struct MutationRate {
 
 struct SpeciatingParameter {
 	SpeciatingParameter():
-		population(240),
+		population(100),
 		deltaDisjoint(2.0),
 		deltaWeights(0.4),
 		deltaThreshold(1.3),
+		parentPercent(10.0),
 		staleSpecies(15) {
 
 	}
@@ -42,6 +43,7 @@ struct SpeciatingParameter {
 	double		deltaDisjoint;
 	double		deltaWeights;
 	double		deltaThreshold;
+	double		parentPercent;
 	unsigned int	staleSpecies;
 };
 

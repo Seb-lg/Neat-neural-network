@@ -15,7 +15,7 @@ public:
 	Graphical(int size, int width);
 
 	void draw(SnakeAPI::map_t const &left, SnakeAPI::map_t const &right);
-	void draw(SnakeAPI::map_t const &tableau);
+	void draw(SnakeAPI::map_t const &tableau, sf::Color color);
 
 	void update();
 

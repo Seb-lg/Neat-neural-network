@@ -10,7 +10,7 @@
 #include <thread>
 #ifndef SERVER
 #include "../Graphical.hpp"
-Graphical gr(50, 750);
+static Graphical gr(50, 750);
 #endif
 
 auto &getGen() {
@@ -47,9 +47,9 @@ SnakeAPI::Direction Genome::computeDirection() {
 	return SnakeAPI::Direction::Right;
 }
 
-void Genome::graphicalTic() {
+void Genome::graphicalTic(sf::Color color) {
 #ifndef SERVER
-	gr.draw(getMap());
+	gr.draw(getMap(), color);
 	gr.update();
 	std::this_thread::sleep_for(std::chrono::microseconds(16666));
 #endif
@@ -170,6 +170,7 @@ void Genome::Mutate() {
 	std::uniform_real_distribution<double> rand(0.0, 1.0);
 	double p;
 
+	NodeMutation();
 	p = mutationRates.weightMutationChance;
 	while (p > 0.0) {
 		if (rand(getGen()) < p)
@@ -185,7 +186,6 @@ void Genome::Mutate() {
 	}
 
 	ConnectionEnableMutation();
-	NodeMutation();
 }
 
 void Genome::Crossover(Genome &pere, Genome &mere) {
@@ -209,16 +209,19 @@ void Genome::Crossover(Genome &pere, Genome &mere) {
 			//this->genes.emplace(itM->first, new Connection(*itM->second));
 			itM++;
 		} else if (itM == mere.genes.end()) {
-			this->genes.emplace(itP->first, new Connection(*itP->second));
+			if (itP->second->enabled)
+				this->genes.emplace(itP->first, new Connection(*itP->second));
 			itP++;
 		} else if (itP->second->innovationNum == itM->second->innovationNum) {
-			this->genes.emplace(itP->second->innovationNum, new Connection(*itP->second));
-			this->genes[itP->first]->weight = (coinFlip(getGen()) ? itP->second->weight : itM->second->weight);
+			if (itP->second->enabled) {
+				this->genes.emplace(itP->second->innovationNum, new Connection(*itP->second));
+				this->genes[itP->first]->weight = (coinFlip(getGen()) ? itP->second->weight : itM->second->weight);
+			}
 			itP++;
 			itM++;
 		} else {
 			if (itP->second->innovationNum < itM->second->innovationNum) {
-				if (coinFlip(getGen()))
+				if (coinFlip(getGen()) && itP->second->enabled)
 					this->genes.emplace(itP->first, new Connection(*itP->second));
 				itP++;
 			} else {
@@ -250,7 +253,7 @@ void Genome::Crossover(Genome &clone) {
 		}
 	}
 	for (const auto &item : clone.nodes) {
-		this->nodes.emplace(item.second->id, new Node(*item.second));
+		this->nodes.emplace(item.second->id, new Node(*item.second)).first->second->value = 1.0;
 	}
 
 
@@ -577,10 +580,14 @@ void Genome::ConnectionMutate() {
 		from = randNode(getGen()) % (nodes.size() - 1 - networkInfo.outputSize);
 		if (from >= networkInfo.inputSize + networkInfo.biasSize)
 			from += networkInfo.outputSize;
-		while (from == to) {
+		int loop = 0;
+		while (from == to || std::find(connectionNet[from].begin(), connectionNet[from].end(), to) != connectionNet[from].end()) {
 			from = randNode(getGen()) % (nodes.size() - 1 - networkInfo.outputSize);
 			if (from >= networkInfo.inputSize + networkInfo.biasSize)
 				from += networkInfo.outputSize;
+			to = (randNode(getGen()) % (nodes.size() - 1 - networkInfo.inputSize - networkInfo.biasSize)) + networkInfo.inputSize + networkInfo.biasSize;
+			if (++loop > 1000)
+				return;
 		}
 
 

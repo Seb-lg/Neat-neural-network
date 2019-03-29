@@ -4,14 +4,14 @@
 #include <iterator>
 #include <cstring>
 
-std::size_t SnakeAPI::runGraphical()
+std::size_t SnakeAPI::runGraphical(sf::Color color)
 {
     _points = 0;
     _food = 250;
     generateMap();
 
     do {
-        graphicalTic(); // if you don't want to have graphical print, just do an empty function.
+        graphicalTic(color); // if you don't want to have graphical print, just do an empty function.
     } while (nextTic(computeDirection()));
     return _points;
 }
@@ -55,7 +55,6 @@ bool SnakeAPI::nextTic(Direction dir)
         if (!generateNewApple())
             return false;
         _snake.push_back(_snake.back());
-//        _points += 25;
         _food += 250;
     }
     _map[_snake.back().second][_snake.back().first] = nothing;
