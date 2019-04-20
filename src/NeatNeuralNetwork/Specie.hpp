@@ -29,6 +29,12 @@ public:
 	NetworkInfo				info;
 	MutationRate				rates;
 
+	unsigned long				maxFitness;
+	unsigned long				minFitness;
+	unsigned long				fitness;
+
+	double					topologieScore;
+
 #ifndef SERVER
 	sf::Color				color;
 #endif

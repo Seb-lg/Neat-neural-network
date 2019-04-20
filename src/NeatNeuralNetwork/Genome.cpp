@@ -186,6 +186,8 @@ void Genome::Mutate() {
 	}
 
 	ConnectionEnableMutation();
+
+	
 }
 
 void Genome::Crossover(Genome &pere, Genome &mere) {

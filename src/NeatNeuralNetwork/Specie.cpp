@@ -51,4 +51,17 @@ void Specie::Update() {
 	std::sort(population.begin(), population.end(), [](std::shared_ptr<Genome> const &a, std::shared_ptr<Genome> const &b) {
 		return a->fitness > b->fitness;
 	});
+
+	fitness = 0;
+	maxFitness = population[0]->fitness;
+	minFitness = population[0]->fitness;
+
+	for (const auto &item : population) {
+		if (item->fitness > maxFitness)
+			maxFitness = item->fitness;
+		if (item->fitness < minFitness)
+			minFitness = item->fitness;
+		fitness += item->fitness;
+	}
+	fitness = fitness / population.size();
 }
